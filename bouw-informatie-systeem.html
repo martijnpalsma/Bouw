@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouw Informatie Systeem</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <style>
+        :root {
+            --primary-color: #D4AF37;
+            --secondary-color: #2c3e50;
+            --background-color: #f8f8f8;
+            --border-color: #e9ecef;
+            --text-color: #333333;
+            --modal-background: rgba(0, 0, 0, 0.5);
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding-top: 60px;
+        }
+
+        .header {
+            background-color: #ffffff;
+            color: var(--secondary-color);
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+
+        .nav-menu a:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--primary-color);
+        }
+
+        .form-section {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .form-section:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s;
+        }
+
+        .collapsible-header:hover {
+            background-color: #e9ecef;
+        }
+
+        .collapsible-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--secondary-color);
+        }
+
+        .toggle-icon {
+            font-size: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 1.5rem;
+        }
+
+        .collapsible-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+            background-color: #fafafa;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .checkbox-group[onclick] {
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+            position: relative;
+        }
+
+        .checkbox-group[onclick]:hover {
+            background-color: #f0f0f0;
+            border-color: var(--primary-color);
+        }
+
+        .info-text {
+            grid-column: 1 / -1;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-align: center;
+            padding-top: 10px;
+            margin-top: 10px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .checkbox-group[onclick] .checkbox-item {
+            pointer-events: none;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-background);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--secondary-color);
+        }
+
+        .close-modal {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-color);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .close-modal:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        button.secondary {
+            background-color: #e9ecef;
+            color: var(--secondary-color);
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .other-input {
+            margin-top: 10px;
+        }
+
+        .inspection-type {
+            margin-bottom: 20px;
+        }
+
+        .inspection-details {
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 2px solid var(--primary-color);
+        }
+
+        .form-section-inner {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-section-inner h3 {
+            margin: 0 0 1rem 0;
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+
+        .summary-view {
+            background-color: #fafafa;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .summary-view:hover {
+            background-color: #f0f0f0;
+            border-color: var(--primary-color);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-row:last-of-type {
+            border-bottom: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-row label {
+            font-weight: 500;
+            color: var(--secondary-color);
+            margin-bottom: 0;
+        }
+
+        .summary-row span {
+            color: var(--text-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .form-container {
+                padding: 15px;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+
+        /* Form Validation Styles */
+        input:invalid,
+        textarea:invalid {
+            border-color: var(--border-color);
+        }
+
+        input:valid,
+        textarea:valid {
+            border-color: var(--border-color);
+        }
+
+        .required::after {
+            content: "";
+        }
+
+        /* Loading State */
+        .loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .loading::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">Bouw Informatie Systeem</div>
+            <ul class="nav-menu">
+                <li><a href="index.html" style="display: flex; align-items: center; gap: 5px;">🏠 Home</a></li>
+                <li><a href="#" class="active">Systeem</a></li>
+                <li><a href="#">Rapporten</a></li>
+                <li><a href="#">Instellingen</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="form-container">
+            <!-- Algemene Informatie -->
+            <div class="form-section">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h2>Algemene Informatie</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="form-group">
+                        <label for="rapportnummer">Rapportnummer:</label>
+                        <input type="text" id="rapportnummer" name="rapportnummer">
+                    </div>
+                    <div class="form-group">
+                        <label for="inspectiedatum">Inspectiedatum:</label>
+                        <input type="date" id="inspectiedatum" name="inspectiedatum">
+                    </div>
+                    <div class="form-group">
+                        <label for="inspecteur">Inspecteur:</label>
+                        <input type="text" id="inspecteur" name="inspecteur">
+                    </div>
+                    <div class="form-group">
+                        <label for="maatschappij">Maatschappij:</label>
+                        <input type="text" id="maatschappij" name="maatschappij">
+                    </div>
+                    <div class="form-group">
+                        <label for="tussenpersoon">Tussenpersoon:</label>
+                        <input type="text" id="tussenpersoon" name="tussenpersoon">
+                    </div>
+                    <div class="form-group">
+                        <label for="polisnummer">Polisnummer:</label>
+                        <input type="text" id="polisnummer" name="polisnummer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verzekeringsgegevens -->
+            <div class="form-section">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h2>1.3 Verzekeringsgegevens</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="form-group">
+                        <label for="polisnummer">Polisnummer:</label>
+                        <input type="text" id="polisnummer" name="polisnummer">
+                    </div>
+                    <div class="form-group">
+                        <label for="verzekeringsmaatschappij">Verzekeringsmaatschappij:</label>
+                        <input type="text" id="verzekeringsmaatschappij" name="verzekeringsmaatschappij">
+                    </div>
+                    <div class="form-group">
+                        <label for="tussenpersoon">Tussenpersoon:</label>
+                        <input type="text" id="tussenpersoon" name="tussenpersoon">
+                    </div>
+                    <div class="form-group">
+                        <label for="verzekeringsvorm">Verzekeringsvorm:</label>
+                        <select id="verzekeringsvorm" name="verzekeringsvorm">
+                            <option value="">Selecteer verzekeringsvorm</option>
+                            <option value="bedrijfsgebouw">Bedrijfsgebouw</option>
+                            <option value="bedrijfsinventaris">Bedrijfsinventaris</option>
+                            <option value="bedrijfsaansprakelijkheid">Bedrijfsaansprakelijkheid</option>
+                            <option value="overig">Overig</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="verzekerd_bedrag">Verzekerd bedrag:</label>
+                        <input type="number" id="verzekerd_bedrag" name="verzekerd_bedrag" min="0" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Object Identificatie -->
+            <div class="form-section">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h2>1.4 Object Identificatie</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="form-group">
+                        <label for="object_naam">Objectnaam:</label>
+                        <input type="text" id="object_naam" name="object_naam">
+                    </div>
+                    <div class="form-group">
+                        <label for="object_type">Type object:</label>
+                        <select id="object_type" name="object_type">
+                            <option value="">Selecteer type object</option>
+                            <option value="kantoor">Kantoor</option>
+                            <option value="magazijn">Magazijn</option>
+                            <option value="winkel">Winkel</option>
+                            <option value="industrieel">Industrieel</option>
+                            <option value="overig">Overig</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="object_adres">Adres:</label>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                            <input type="text" id="object_straat" name="object_straat" placeholder="Straat">
+                            <input type="text" id="object_huisnummer" name="object_huisnummer" placeholder="Nummer">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+                            <input type="text" id="object_postcode" name="object_postcode" placeholder="Postcode">
+                            <input type="text" id="object_plaats" name="object_plaats" placeholder="Plaats">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="object_coordinaten">Coördinaten:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <input type="text" id="object_latitude" name="object_latitude" placeholder="Latitude">
+                            <input type="text" id="object_longitude" name="object_longitude" placeholder="Longitude">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="object_beschrijving">Objectbeschrijving:</label>
+                        <textarea id="object_beschrijving" name="object_beschrijving" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verzekerde -->
+            <div class="form-section">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h2>Verzekerde</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="form-group" onclick="showVerzekerdeModal()">
+                        <div class="summary-view">
+                            <div class="summary-row">
+                                <label>Bedrijfsnaam:</label>
+                                <span id="summary_bedrijfsnaam">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Contactpersoon:</label>
+                                <span id="summary_contactpersoon">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>KvK-nummer:</label>
+                                <span id="summary_kvk">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Vestigingsadres:</label>
+                                <span id="summary_adres">-</span>
+                            </div>
+                            <div class="info-text">
+                                Klik voor volledige gegevens en bewerken
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gebouw -->
+            <div class="form-section">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h2>Gebouw</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <!-- Bouwjaar en Gebruik -->
+                    <div class="form-group">
+                        <label for="bouwjaar">Bouwjaar:</label>
+                        <input type="number" id="bouwjaar" name="bouwjaar" min="1800" max="2024">
+                    </div>
+                    <div class="form-group">
+                        <label>Type gebouw:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="radio" id="type_vrijstaand" name="type_gebouw" value="vrijstaand" required>
+                                <label for="type_vrijstaand">Vrijstaand</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" id="type_geschakeld" name="type_gebouw" value="geschakeld">
+                                <label for="type_geschakeld">Geschakeld</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" id="type_bedrijfsverzamelgebouw" name="type_gebouw" value="bedrijfsverzamelgebouw">
+                                <label for="type_bedrijfsverzamelgebouw">Bedrijfsverzamelgebouw</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Constructie -->
+                    <div class="form-group">
+                        <label>Constructie:</label>
+                        <div class="checkbox-group" onclick="showConstructionModal()">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="constructie_beton" name="constructie" value="beton">
+                                <label for="constructie_beton">Beton</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="constructie_staal" name="constructie" value="staal">
+                                <label for="constructie_staal">Staal</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="constructie_hout" name="constructie" value="hout">
+                                <label for="constructie_hout">Hout</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="constructie_steen" name="constructie" value="steen">
+                                <label for="constructie_steen">Steen</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="constructie_overig" name="constructie" value="overig">
+                                <label for="constructie_overig">Overig</label>
+                            </div>
+                            <div class="info-text">
+                                Klik voor meer details en specificaties
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Constructie Details Summary -->
+                    <div class="form-group">
+                        <div class="summary-view">
+                            <div class="summary-row">
+                                <label>Constructie type:</label>
+                                <span id="summary_constructie">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Dakconstructie:</label>
+                                <span id="summary_dak">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Dakbedekking:</label>
+                                <span id="summary_dakbedekking">-</span>
+                            </div>
+                            <div class="info-text">
+                                Klik voor volledige constructie details
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gevels -->
+                    <div class="form-group">
+                        <label>Gevels:</label>
+                        <div class="checkbox-group" onclick="showFacadesModal()">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="gevel_steen" name="gevels" value="steen">
+                                <label for="gevel_steen">Steen</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="gevel_prefab" name="gevels" value="prefab">
+                                <label for="gevel_prefab">Prefab beton</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="gevel_metaal" name="gevels" value="metaal">
+                                <label for="gevel_metaal">Metalen beplating</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="gevel_glas" name="gevels" value="glas">
+                                <label for="gevel_glas">Glas</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="gevel_hout" name="gevels" value="hout">
+                                <label for="gevel_hout">Hout</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="gevel_kunststof" name="gevels" value="kunststof">
+                                <label for="gevel_kunststof">Kunststof</label>
+                            </div>
+                            <div class="info-text">
+                                Klik voor meer details over isolatie en openingen
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gevels Details Summary -->
+                    <div class="form-group">
+                        <div class="summary-view">
+                            <div class="summary-row">
+                                <label>Gevel type:</label>
+                                <span id="summary_gevel">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Isolatie:</label>
+                                <span id="summary_isolatie">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Openingen:</label>
+                                <span id="summary_openingen">-</span>
+                            </div>
+                            <div class="info-text">
+                                Klik voor volledige gevel details
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Beveiliging -->
+                    <div class="form-group">
+                        <label>Beveiliging:</label>
+                        <div class="checkbox-group" onclick="showSecurityModal()">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="beveiliging_aanwezig" name="beveiliging_aanwezig" value="ja">
+                                <label for="beveiliging_aanwezig">Beveiliging aanwezig</label>
+                            </div>
+                            <div class="info-text">
+                                Klik voor beveiligings- en inbraakpreventie details
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Beveiliging Details Summary -->
+                    <div class="form-group">
+                        <div class="summary-view">
+                            <div class="summary-row">
+                                <label>Beveiliging type:</label>
+                                <span id="summary_beveiliging">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Ramen en deuren:</label>
+                                <span id="summary_ramen_deuren">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <label>Extra maatregelen:</label>
+                                <span id="summary_extra_beveiliging">-</span>
+                            </div>
+                            <div class="info-text">
+                                Klik voor volledige beveiligingsdetails
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verdiepingen -->
+                    <div class="form-group">
+                        <label for="aantal_verdiepingen">Aantal verdiepingen:</label>
+                        <input type="number" id="aantal_verdiepingen" name="aantal_verdiepingen" min="1">
+                    </div>
+
+                    <!-- Oppervlakte -->
+                    <div class="form-group">
+                        <label for="oppervlakte_bebouwd">Bebouwd oppervlakte (m²):</label>
+                        <input type="number" id="oppervlakte_bebouwd" name="oppervlakte_bebouwd" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="oppervlakte_bruto_vloer">Bruto vloeroppervlakte (m²):</label>
+                        <input type="number" id="oppervlakte_bruto_vloer" name="oppervlakte_bruto_vloer" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brandveiligheid -->
+            <div class="form-section">
+                <div class="form-section-header" onclick="toggleSection(this)">
+                    <h3>Brandveiligheid</h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="form-section-content">
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="brandveiligheid_aanwezig" name="brandveiligheid_aanwezig">
+                            <label for="brandveiligheid_aanwezig">Brandveiligheid aanwezig</label>
+                        </div>
+                    </div>
+
+                    <div class="summary-view" onclick="showFireSafetyModal()">
+                        <div class="summary-row">
+                            <span class="summary-label">Brandmeldinstallatie:</span>
+                            <span class="summary-value" id="summary_bmi">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Blusmiddelen:</span>
+                            <span class="summary-value" id="summary_blusmiddelen">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Compartimentering:</span>
+                            <span class="summary-value" id="summary_compartimentering">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Vluchtroutes:</span>
+                            <span class="summary-value" id="summary_vluchtroutes">-</span>
+                        </div>
+                        <div class="summary-prompt">Klik voor meer details</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Gebouw Installaties section -->
+            <div class="form-section">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h2>Gebouw Installaties</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="form-group">
+                        <label>Installaties:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="installatie_elektra" name="installaties" value="elektra" onchange="showElektraModal()">
+                                <label for="installatie_elektra">Elektrische installatie</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="installatie_verwarming" name="installaties" value="verwarming">
+                                <label for="installatie_verwarming">Verwarmingsinstallatie</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="installatie_koeling" name="installaties" value="koeling">
+                                <label for="installatie_koeling">Koelingsinstallatie</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="installatie_ventilatie" name="installaties" value="ventilatie">
+                                <label for="installatie_ventilatie">Ventilatie</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="installatie_zonnepanelen" name="installaties" value="zonnepanelen">
+                                <label for="installatie_zonnepanelen">Zonnepanelen</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="installatie_lift" name="installaties" value="lift">
+                                <label for="installatie_lift">Lift</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Electrical Installations Modal -->
+    <div id="elektraModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Elektrische Installatie Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Scope Keuringen:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="keuring_nen3140" name="keuring_type" value="nen3140" onchange="toggleNEN3140Details(this)">
+                            <label for="keuring_nen3140">NEN 3140 keuring</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="keuring_nen1010" name="keuring_type" value="nen1010" onchange="toggleNEN1010Details(this)">
+                            <label for="keuring_nen1010">NEN 1010 keuring</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="keuring_thermografisch" name="keuring_type" value="thermografisch" onchange="toggleThermografischDetails(this)">
+                            <label for="keuring_thermografisch">Thermografisch onderzoek</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="keuring_ultrasoon" name="keuring_type" value="ultrasoon" onchange="toggleUltrasoonDetails(this)">
+                            <label for="keuring_ultrasoon">Ultrasoon onderzoek</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="keuring_geen" name="keuring_type" value="geen">
+                            <label for="keuring_geen">Geen keuringen uitgevoerd</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="keuring_overig" name="keuring_type" value="overig" onchange="toggleKeuringOverigDetails(this)">
+                            <label for="keuring_overig">Overige</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="nen3140_details" class="inspection-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="nen3140_datum">Datum keuring:</label>
+                        <input type="date" id="nen3140_datum" name="nen3140_datum">
+                    </div>
+                    <div class="form-group">
+                        <label for="nen3140_certificaat">Document nummer:</label>
+                        <input type="text" id="nen3140_certificaat" name="nen3140_certificaat" placeholder="Voer document nummer in">
+                    </div>
+                </div>
+
+                <div id="nen1010_details" class="inspection-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="nen1010_datum">Datum keuring:</label>
+                        <input type="date" id="nen1010_datum" name="nen1010_datum">
+                    </div>
+                    <div class="form-group">
+                        <label for="nen1010_certificaat">Document nummer:</label>
+                        <input type="text" id="nen1010_certificaat" name="nen1010_certificaat" placeholder="Voer document nummer in">
+                    </div>
+                </div>
+
+                <div id="thermografisch_details" class="inspection-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="thermografisch_datum">Datum onderzoek:</label>
+                        <input type="date" id="thermografisch_datum" name="thermografisch_datum">
+                    </div>
+                    <div class="form-group">
+                        <label for="thermografisch_rapport">Rapport nummer:</label>
+                        <input type="text" id="thermografisch_rapport" name="thermografisch_rapport" placeholder="Voer rapport nummer in">
+                    </div>
+                </div>
+
+                <div id="ultrasoon_details" class="inspection-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="ultrasoon_datum">Datum onderzoek:</label>
+                        <input type="date" id="ultrasoon_datum" name="ultrasoon_datum">
+                    </div>
+                    <div class="form-group">
+                        <label for="ultrasoon_rapport">Rapport nummer:</label>
+                        <input type="text" id="ultrasoon_rapport" name="ultrasoon_rapport" placeholder="Voer rapport nummer in">
+                    </div>
+                </div>
+
+                <div id="keuring_overig_details" class="inspection-details" style="display: none;">
+                    <div class="form-group">
+                        <label for="keuring_overig_type">Type keuring:</label>
+                        <input type="text" id="keuring_overig_type" name="keuring_overig_type" placeholder="Specificeer type keuring">
+                    </div>
+                    <div class="form-group">
+                        <label for="keuring_overig_datum">Datum keuring:</label>
+                        <input type="date" id="keuring_overig_datum" name="keuring_overig_datum">
+                    </div>
+                    <div class="form-group">
+                        <label for="keuring_overig_rapport">Rapport nummer:</label>
+                        <input type="text" id="keuring_overig_rapport" name="keuring_overig_rapport" placeholder="Voer rapport nummer in">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Onderhoud Elektrische Installatie:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="elektra_onderhoud_geen" name="elektra_onderhoud" value="geen" onchange="toggleElektraOnderhoud(this)">
+                            <label for="elektra_onderhoud_geen">Geen</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="elektra_onderhoud_erkend_afroep" name="elektra_onderhoud" value="erkend_afroep" onchange="toggleElektraOnderhoud(this)">
+                            <label for="elektra_onderhoud_erkend_afroep">Erkend installatiebedrijf (op afroep)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="elektra_onderhoud_erkend_periodiek" name="elektra_onderhoud" value="erkend_periodiek" onchange="toggleElektraOnderhoud(this)">
+                            <label for="elektra_onderhoud_erkend_periodiek">Erkend installatiebedrijf (periodiek onderhoud)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary close-modal">Annuleren</button>
+                <button type="button" class="primary" onclick="saveElektraDetails()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Heating Installation Modal -->
+    <div id="verwarmingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Verwarmingsinstallatie Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Type verwarming:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_cv_gesloten" name="verwarming_type" value="cv_gesloten">
+                            <label for="verwarming_cv_gesloten">Gasgestookte c.v.-installatie (gesloten systeem)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_cv_open" name="verwarming_type" value="cv_open">
+                            <label for="verwarming_cv_open">Gasgestookte c.v.-installatie (open systeem)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_indirect" name="verwarming_type" value="indirect">
+                            <label for="verwarming_indirect">Indirect gestookte heaters</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_warmtepomp" name="verwarming_type" value="warmtepomp">
+                            <label for="verwarming_warmtepomp">Lucht en water warmtepomp</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_grondwarmtepomp" name="verwarming_type" value="grondwarmtepomp">
+                            <label for="verwarming_grondwarmtepomp">Grondgebonden warmtepomp (gesloten of open systeem)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_zonneboiler" name="verwarming_type" value="zonneboiler">
+                            <label for="verwarming_zonneboiler">Zonneboilerinstallatie</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_stadsverwarming" name="verwarming_type" value="stadsverwarming">
+                            <label for="verwarming_stadsverwarming">Stadsverwarming</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_vloer" name="verwarming_type" value="vloer">
+                            <label for="verwarming_vloer">Vloerverwarming</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_elektrisch" name="verwarming_type" value="elektrisch">
+                            <label for="verwarming_elektrisch">Elektrische kachels</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="verwarming_overig" name="verwarming_type" value="overig" onchange="toggleVerwarmingOverig(this)">
+                            <label for="verwarming_overig">Overig</label>
+                        </div>
+                    </div>
+                    <input type="text" id="verwarming_overig_text" name="verwarming_overig_text" class="other-input" placeholder="Specificeer overige verwarmingsinstallatie" style="display: none;">
+                </div>
+
+                <!-- SCIOS Scope 12 -->
+                <div class="form-group">
+                    <label>SCIOS Scope 12 keuring:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="scios12_ja" name="scios12_keuring" value="ja" onchange="toggleScios12Details(this)">
+                            <label for="scios12_ja">Ja</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="scios12_nee" name="scios12_keuring" value="nee" onchange="toggleScios12Details(this)">
+                            <label for="scios12_nee">Nee</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scios12_details_container" style="display: none;">
+                    <div class="form-group">
+                        <label for="scios12_datum">Datum keuring:</label>
+                        <input type="date" id="scios12_datum" name="scios12_datum">
+                    </div>
+                    <div class="form-group">
+                        <label for="scios12_certificaat">Certificaat nummer:</label>
+                        <input type="text" id="scios12_certificaat" name="scios12_certificaat" placeholder="Voer certificaat nummer in">
+                    </div>
+                </div>
+
+                <!-- Onderhoud -->
+                <div class="form-group">
+                    <label>Onderhoud:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="onderhoud_geen" name="onderhoud" value="geen" onchange="toggleVerwarmingOnderhoud(this)">
+                            <label for="onderhoud_geen">Geen</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="onderhoud_garantie" name="onderhoud" value="garantie" onchange="toggleVerwarmingOnderhoud(this)">
+                            <label for="onderhoud_garantie">In verband met fabrieksgarantie nog geen onderhoudscontract afgesloten</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="onderhoud_periodiek" name="onderhoud" value="periodiek" onchange="toggleVerwarmingOnderhoud(this)">
+                            <label for="onderhoud_periodiek">Installatiebureau (periodiek)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="onderhoud_afroep" name="onderhoud" value="afroep" onchange="toggleVerwarmingOnderhoud(this)">
+                            <label for="onderhoud_afroep">Installatiebureau (op afroep)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="onderhoud_eigen" name="onderhoud" value="eigen" onchange="toggleVerwarmingOnderhoud(this)">
+                            <label for="onderhoud_eigen">In eigen beheer</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary close-modal">Annuleren</button>
+                <button type="button" class="primary" onclick="saveVerwarmingDetails()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Construction and Roof Modal -->
+    <div id="constructionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Constructie en Dak Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Constructie:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_constructie_beton" name="modal_constructie" value="beton">
+                            <label for="modal_constructie_beton">Beton</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_constructie_staal" name="modal_constructie" value="staal">
+                            <label for="modal_constructie_staal">Staal</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_constructie_hout" name="modal_constructie" value="hout">
+                            <label for="modal_constructie_hout">Hout</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_constructie_steen" name="modal_constructie" value="steen">
+                            <label for="modal_constructie_steen">Steen</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_constructie_overig" name="modal_constructie" value="overig" onchange="toggleConstructieOverig(this)">
+                            <label for="modal_constructie_overig">Overig</label>
+                        </div>
+                    </div>
+                    <input type="text" id="modal_constructie_overig_text" name="modal_constructie_overig_text" class="other-input" placeholder="Specificeer overige constructie" style="display: none;">
+                </div>
+
+                <div class="form-group">
+                    <label>Dakconstructie:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dak_plat" name="modal_dak" value="plat">
+                            <label for="modal_dak_plat">Plat dak</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dak_schuin" name="modal_dak" value="schuin">
+                            <label for="modal_dak_schuin">Schuin dak</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dak_lessenaars" name="modal_dak" value="lessenaars">
+                            <label for="modal_dak_lessenaars">Lessenaarsdak</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dak_zadel" name="modal_dak" value="zadel">
+                            <label for="modal_dak_zadel">Zadeldak</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dakbedekking:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dakbedekking_bitumen" name="modal_dakbedekking" value="bitumen">
+                            <label for="modal_dakbedekking_bitumen">Bitumen</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dakbedekking_epdm" name="modal_dakbedekking" value="epdm">
+                            <label for="modal_dakbedekking_epdm">EPDM</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dakbedekking_pvc" name="modal_dakbedekking" value="pvc">
+                            <label for="modal_dakbedekking_pvc">PVC</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dakbedekking_pannen" name="modal_dakbedekking" value="pannen">
+                            <label for="modal_dakbedekking_pannen">Dakpannen</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dakbedekking_metaal" name="modal_dakbedekking" value="metaal">
+                            <label for="modal_dakbedekking_metaal">Metalen dakplaten</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_dakbedekking_overig" name="modal_dakbedekking" value="overig" onchange="toggleDakbedekkingOverig(this)">
+                            <label for="modal_dakbedekking_overig">Overig</label>
+                        </div>
+                    </div>
+                    <input type="text" id="modal_dakbedekking_overig_text" name="modal_dakbedekking_overig_text" class="other-input" placeholder="Specificeer overige dakbedekking" style="display: none;">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary close-modal">Annuleren</button>
+                <button type="button" class="primary" onclick="saveConstructionDetails()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Facades Modal -->
+    <div id="facadesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gevel Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Gevels:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_gevel_steen" name="modal_gevels" value="steen">
+                            <label for="modal_gevel_steen">Steen</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_gevel_prefab" name="modal_gevels" value="prefab">
+                            <label for="modal_gevel_prefab">Prefab beton</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_gevel_metaal" name="modal_gevels" value="metaal">
+                            <label for="modal_gevel_metaal">Metalen beplating</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_gevel_glas" name="modal_gevels" value="glas">
+                            <label for="modal_gevel_glas">Glas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_gevel_hout" name="modal_gevels" value="hout">
+                            <label for="modal_gevel_hout">Hout</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_gevel_kunststof" name="modal_gevels" value="kunststof">
+                            <label for="modal_gevel_kunststof">Kunststof</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_gevel_overig" name="modal_gevels" value="overig" onchange="toggleGevelOverig(this)">
+                            <label for="modal_gevel_overig">Overig</label>
+                        </div>
+                    </div>
+                    <input type="text" id="modal_gevel_overig_text" name="modal_gevel_overig_text" class="other-input" placeholder="Specificeer overige gevelconstructie" style="display: none;">
+                </div>
+
+                <div class="form-group">
+                    <label>Gevel Isolatie:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_isolatie_spouw" name="modal_gevel_isolatie" value="spouw">
+                            <label for="modal_isolatie_spouw">Spouwmuur isolatie</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_isolatie_buitengevel" name="modal_gevel_isolatie" value="buitengevel">
+                            <label for="modal_isolatie_buitengevel">Buitengevel isolatie</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_isolatie_binnengevel" name="modal_gevel_isolatie" value="binnengevel">
+                            <label for="modal_isolatie_binnengevel">Binnengevel isolatie</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_isolatie_geen" name="modal_gevel_isolatie" value="geen">
+                            <label for="modal_isolatie_geen">Geen isolatie</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_isolatie_onbekend" name="modal_gevel_isolatie" value="onbekend">
+                            <label for="modal_isolatie_onbekend">Onbekend</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Gevel Openingen:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_opening_ramen" name="modal_gevel_openingen" value="ramen">
+                            <label for="modal_opening_ramen">Ramen</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_opening_deuren" name="modal_gevel_openingen" value="deuren">
+                            <label for="modal_opening_deuren">Deuren</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_opening_overheaddeuren" name="modal_gevel_openingen" value="overheaddeuren">
+                            <label for="modal_opening_overheaddeuren">Overheaddeuren</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_opening_laaddeuren" name="modal_gevel_openingen" value="laaddeuren">
+                            <label for="modal_opening_laaddeuren">Laaddeuren</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_opening_rolluiken" name="modal_gevel_openingen" value="rolluiken">
+                            <label for="modal_opening_rolluiken">Rolluiken</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary close-modal">Annuleren</button>
+                <button type="button" class="primary" onclick="saveFacadeDetails()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verzekerde Modal -->
+    <div id="verzekerdeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Verzekerde Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="modal_bedrijfsnaam">Bedrijfsnaam:</label>
+                    <input type="text" id="modal_bedrijfsnaam" name="modal_bedrijfsnaam">
+                </div>
+
+                <div class="form-group">
+                    <label for="modal_kvk">KvK-nummer:</label>
+                    <input type="text" id="modal_kvk" name="modal_kvk">
+                </div>
+
+                <div class="form-group">
+                    <label>Bedrijfsactiviteiten:</label>
+                    <textarea id="modal_bedrijfsactiviteiten" name="modal_bedrijfsactiviteiten" rows="4"></textarea>
+                </div>
+
+                <div class="form-section-inner">
+                    <h3>Contactgegevens</h3>
+                    <div class="form-group">
+                        <label for="modal_contactpersoon">Contactpersoon:</label>
+                        <input type="text" id="modal_contactpersoon" name="modal_contactpersoon">
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_functie">Functie:</label>
+                        <input type="text" id="modal_functie" name="modal_functie">
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_telefoonnummer">Telefoonnummer:</label>
+                        <input type="text" id="modal_telefoonnummer" name="modal_telefoonnummer">
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_email">E-mailadres:</label>
+                        <input type="email" id="modal_email" name="modal_email">
+                    </div>
+                </div>
+
+                <div class="form-section-inner">
+                    <h3>Vestigingsadres</h3>
+                    <div class="form-group">
+                        <label>Adres:</label>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                            <input type="text" id="modal_straat" name="modal_straat" placeholder="Straat">
+                            <input type="text" id="modal_huisnummer" name="modal_huisnummer" placeholder="Nummer">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+                            <input type="text" id="modal_postcode" name="modal_postcode" placeholder="Postcode">
+                            <input type="text" id="modal_plaats" name="modal_plaats" placeholder="Plaats">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-inner">
+                    <h3>Correspondentieadres</h3>
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="modal_correspondentie_gelijk" name="modal_correspondentie_gelijk" onchange="toggleCorrespondentieAdres(this)">
+                            <label for="modal_correspondentie_gelijk">Gelijk aan vestigingsadres</label>
+                        </div>
+                    </div>
+                    <div id="correspondentie_adres_velden">
+                        <div class="form-group">
+                            <label>Adres:</label>
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                                <input type="text" id="modal_correspondentie_straat" name="modal_correspondentie_straat" placeholder="Straat">
+                                <input type="text" id="modal_correspondentie_huisnummer" name="modal_correspondentie_huisnummer" placeholder="Nummer">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+                                <input type="text" id="modal_correspondentie_postcode" name="modal_correspondentie_postcode" placeholder="Postcode">
+                                <input type="text" id="modal_correspondentie_plaats" name="modal_correspondentie_plaats" placeholder="Plaats">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary close-modal">Annuleren</button>
+                <button type="button" class="primary" onclick="saveVerzekerdeDetails()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Modal -->
+    <div id="securityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Beveiliging en Inbraakpreventie</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-inner">
+                    <h3>Inbraakpreventie</h3>
+                    <div class="form-group">
+                        <label>Type beveiliging:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="beveiliging_alarm" name="beveiliging_type" value="alarm">
+                                <label for="beveiliging_alarm">Alarmsysteem</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="beveiliging_camera" name="beveiliging_type" value="camera">
+                                <label for="beveiliging_camera">Camerabewaking</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="beveiliging_toegang" name="beveiliging_type" value="toegang">
+                                <label for="beveiliging_toegang">Toegangscontrole</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="beveiliging_geen" name="beveiliging_type" value="geen">
+                                <label for="beveiliging_geen">Geen beveiliging</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Alarm type:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="alarm_centrale" name="alarm_type" value="centrale">
+                                <label for="alarm_centrale">Centrale meldkamer</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="alarm_telefoon" name="alarm_type" value="telefoon">
+                                <label for="alarm_telefoon">Telefoonmelding</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="alarm_lokaal" name="alarm_type" value="lokaal">
+                                <label for="alarm_lokaal">Lokaal alarm</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Toegangscontrole:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="toegang_pas" name="toegang_type" value="pas">
+                                <label for="toegang_pas">Pasjessysteem</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="toegang_code" name="toegang_type" value="code">
+                                <label for="toegang_code">Codelock</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="toegang_biometrisch" name="toegang_type" value="biometrisch">
+                                <label for="toegang_biometrisch">Biometrisch</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-inner">
+                    <h3>Ramen en Deuren</h3>
+                    <div class="form-group">
+                        <label>Type ramen:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="raam_enkel" name="raam_type" value="enkel">
+                                <label for="raam_enkel">Enkel glas</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="raam_dubbel" name="raam_type" value="dubbel">
+                                <label for="raam_dubbel">Dubbel glas</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="raam_triple" name="raam_type" value="triple">
+                                <label for="raam_triple">Triple glas</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="raam_veiligheidsglas" name="raam_type" value="veiligheidsglas">
+                                <label for="raam_veiligheidsglas">Veiligheidsglas</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Type deuren:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="deur_hout" name="deur_type" value="hout">
+                                <label for="deur_hout">Houten deur</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="deur_metaal" name="deur_type" value="metaal">
+                                <label for="deur_metaal">Metalen deur</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="deur_veiligheidsdeur" name="deur_type" value="veiligheidsdeur">
+                                <label for="deur_veiligheidsdeur">Veiligheidsdeur</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sloten:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="slot_standaard" name="slot_type" value="standaard">
+                                <label for="slot_standaard">Standaard slot</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="slot_veiligheidsslot" name="slot_type" value="veiligheidsslot">
+                                <label for="slot_veiligheidsslot">Veiligheidsslot</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="slot_meerpuntssluiting" name="slot_type" value="meerpuntssluiting">
+                                <label for="slot_meerpuntssluiting">Meerpuntssluiting</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-inner">
+                    <h3>Extra Beveiliging</h3>
+                    <div class="form-group">
+                        <label>Extra maatregelen:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="extra_hek" name="extra_beveiliging" value="hek">
+                                <label for="extra_hek">Beveiligingshek</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="extra_verlichting" name="extra_beveiliging" value="verlichting">
+                                <label for="extra_verlichting">Bewegingsverlichting</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="extra_rolluiken" name="extra_beveiliging" value="rolluiken">
+                                <label for="extra_rolluiken">Beveiligingsrolluiken</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="extra_glasfolie" name="extra_beveiliging" value="glasfolie">
+                                <label for="extra_glasfolie">Inbraakwerende glasfolie</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Onderhoud beveiliging:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="onderhoud_geen" name="beveiliging_onderhoud" value="geen">
+                                <label for="onderhoud_geen">Geen onderhoud</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="onderhoud_periodiek" name="beveiliging_onderhoud" value="periodiek">
+                                <label for="onderhoud_periodiek">Periodiek onderhoud</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="onderhoud_afroep" name="beveiliging_onderhoud" value="afroep">
+                                <label for="onderhoud_afroep">Onderhoud op afroep</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary close-modal">Annuleren</button>
+                <button type="button" class="primary" onclick="saveSecurityDetails()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fire Safety Modal -->
+    <div id="fireSafetyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Brandveiligheid Details</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-inner">
+                    <h3>Brandmeldinstallatie</h3>
+                    <div class="form-group">
+                        <label>Type installatie:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bmi_geen" name="bmi_type" value="geen">
+                                <label for="bmi_geen">Geen brandmeldinstallatie</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bmi_optisch" name="bmi_type" value="optisch">
+                                <label for="bmi_optisch">Optische rookmelders</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bmi_handmelders" name="bmi_type" value="handmelders">
+                                <label for="bmi_handmelders">Handmelders</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bmi_volautomatisch" name="bmi_type" value="volautomatisch">
+                                <label for="bmi_volautomatisch">Volautomatische installatie</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Certificering:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bmi_certificaat_ja" name="bmi_certificaat" value="ja" onchange="toggleBMICertificaat(this)">
+                                <label for="bmi_certificaat_ja">Gecertificeerd</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bmi_certificaat_nee" name="bmi_certificaat" value="nee" onchange="toggleBMICertificaat(this)">
+                                <label for="bmi_certificaat_nee">Niet gecertificeerd</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="bmi_certificaat_details" style="display: none;">
+                        <div class="form-group">
+                            <label for="bmi_certificaat_nummer">Certificaat nummer:</label>
+                            <input type="text" id="bmi_certificaat_nummer" name="bmi_certificaat_nummer">
+                        </div>
+                        <div class="form-group">
+                            <label for="bmi_certificaat_datum">Datum certificering:</label>
+                            <input type="date" id="bmi_certificaat_datum" name="bmi_certificaat_datum">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-inner">
+                    <h3>Blusmiddelen</h3>
+                    <div class="form-group">
+                        <label>Type blusmiddelen:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_geen" name="blus_type" value="geen">
+                                <label for="blus_geen">Geen blusmiddelen</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_poeder" name="blus_type" value="poeder">
+                                <label for="blus_poeder">Poederblussers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_schuim" name="blus_type" value="schuim">
+                                <label for="blus_schuim">Schuimblussers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_co2" name="blus_type" value="co2">
+                                <label for="blus_co2">CO2 blussers</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_sprinkler" name="blus_type" value="sprinkler">
+                                <label for="blus_sprinkler">Sprinklerinstallatie</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Onderhoud blusmiddelen:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_onderhoud_geen" name="blus_onderhoud" value="geen">
+                                <label for="blus_onderhoud_geen">Geen onderhoud</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_onderhoud_periodiek" name="blus_onderhoud" value="periodiek">
+                                <label for="blus_onderhoud_periodiek">Periodiek onderhoud</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="blus_onderhoud_afroep" name="blus_onderhoud" value="afroep">
+                                <label for="blus_onderhoud_afroep">Onderhoud op afroep</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-inner">
+                    <h3>Brandcompartimentering</h3>
+                    <div class="form-group">
+                        <label>Type compartimentering:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="compartiment_geen" name="compartiment_type" value="geen">
+                                <label for="compartiment_geen">Geen compartimentering</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="compartiment_brandwanden" name="compartiment_type" value="brandwanden">
+                                <label for="compartiment_brandwanden">Brandwanden</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="compartiment_branddeuren" name="compartiment_type" value="branddeuren">
+                                <label for="compartiment_branddeuren">Branddeuren</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="compartiment_brandluiken" name="compartiment_type" value="brandluiken">
+                                <label for="compartiment_brandluiken">Brandluiken</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vluchtroutes:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vlucht_geen" name="vlucht_type" value="geen">
+                                <label for="vlucht_geen">Geen vluchtroutes</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vlucht_nooduitgang" name="vlucht_type" value="nooduitgang">
+                                <label for="vlucht_nooduitgang">Nooduitgangen</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vlucht_verlichting" name="vlucht_type" value="verlichting">
+                                <label for="vlucht_verlichting">Noodverlichting</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="vlucht_evacuatie" name="vlucht_type" value="evacuatie">
+                                <label for="vlucht_evacuatie">Evacuatieplan</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="secondary close-modal">Annuleren</button>
+                <button type="button" class="primary" onclick="saveFireSafetyDetails()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize form when document is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('inspectiedatum').value = today;
+
+            // Initialize all sections as collapsed
+            document.querySelectorAll('.collapsible-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Add event listeners for all modals
+            initializeModals();
+        });
+
+        // Initialize all modals
+        function initializeModals() {
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modals = document.getElementsByClassName('modal');
+                Array.from(modals).forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+
+            // Close modal when clicking close button
+            document.querySelectorAll('.close-modal').forEach(button => {
+                button.onclick = function() {
+                    const modal = this.closest('.modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            });
+
+            // Initialize all toggle functions
+            initializeToggleFunctions();
+        }
+
+        // Initialize all toggle functions
+        function initializeToggleFunctions() {
+            // Toggle "Overig" input fields
+            function toggleOverig(type) {
+                const checkbox = document.getElementById(`${type}_overig`);
+                const textInput = document.getElementById(`${type}_overig_text`);
+                if (checkbox && textInput) {
+                    textInput.style.display = checkbox.checked ? 'block' : 'none';
+                    if (!checkbox.checked) {
+                        textInput.value = '';
+                    }
+                }
+            }
+
+            // Section toggle functionality
+            function toggleSection(header) {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('.toggle-icon');
+                
+                content.classList.toggle('active');
+                if (content.classList.contains('active')) {
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
+
+            // Add event listeners for all toggle functions
+            document.querySelectorAll('.collapsible-header').forEach(header => {
+                header.addEventListener('click', () => toggleSection(header));
+            });
+        }
+
+        // Generate PDF from form data
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Add title
+            doc.setFontSize(20);
+            doc.text('Bouw Informatie Systeem Rapport', 20, 20);
+
+            // Add general information
+            doc.setFontSize(16);
+            doc.text('Algemene Informatie', 20, 40);
+            doc.setFontSize(12);
+            doc.text(`Rapportnummer: ${document.getElementById('rapportnummer').value}`, 20, 50);
+            doc.text(`Inspectiedatum: ${document.getElementById('inspectiedatum').value}`, 20, 60);
+            doc.text(`Inspecteur: ${document.getElementById('inspecteur').value}`, 20, 70);
+            doc.text(`Maatschappij: ${document.getElementById('maatschappij').value}`, 20, 80);
+
+            // Add insured party information
+            doc.setFontSize(16);
+            doc.text('Verzekerde', 20, 100);
+            doc.setFontSize(12);
+            doc.text(`Bedrijfsnaam: ${document.getElementById('summary_bedrijfsnaam').textContent}`, 20, 110);
+            doc.text(`Contactpersoon: ${document.getElementById('summary_contactpersoon').textContent}`, 20, 120);
+            doc.text(`KvK-nummer: ${document.getElementById('summary_kvk').textContent}`, 20, 130);
+            doc.text(`Adres: ${document.getElementById('summary_adres').textContent}`, 20, 140);
+
+            // Add building information
+            doc.setFontSize(16);
+            doc.text('Gebouw', 20, 160);
+            doc.setFontSize(12);
+            doc.text(`Bouwjaar: ${document.getElementById('bouwjaar').value}`, 20, 170);
+            doc.text(`Constructie: ${document.getElementById('summary_constructie').textContent}`, 20, 180);
+            doc.text(`Dakconstructie: ${document.getElementById('summary_dak').textContent}`, 20, 190);
+            doc.text(`Dakbedekking: ${document.getElementById('summary_dakbedekking').textContent}`, 20, 200);
+
+            // Add security information
+            doc.setFontSize(16);
+            doc.text('Beveiliging', 20, 220);
+            doc.setFontSize(12);
+            doc.text(`Beveiliging type: ${document.getElementById('summary_beveiliging').textContent}`, 20, 230);
+            doc.text(`Ramen en deuren: ${document.getElementById('summary_ramen_deuren').textContent}`, 20, 240);
+            doc.text(`Extra maatregelen: ${document.getElementById('summary_extra_beveiliging').textContent}`, 20, 250);
+
+            // Add fire safety information
+            doc.setFontSize(16);
+            doc.text('Brandveiligheid', 20, 270);
+            doc.setFontSize(12);
+            doc.text(`Brandmeldinstallatie: ${document.getElementById('summary_bmi').textContent}`, 20, 280);
+            doc.text(`Blusmiddelen: ${document.getElementById('summary_blusmiddelen').textContent}`, 20, 290);
+            doc.text(`Compartimentering: ${document.getElementById('summary_compartimentering').textContent}`, 20, 300);
+            doc.text(`Vluchtroutes: ${document.getElementById('summary_vluchtroutes').textContent}`, 20, 310);
+
+            // Save the PDF
+            doc.save('bouw-informatie-rapport.pdf');
+        }
+
+        // Add event listener for PDF generation
+        document.addEventListener('DOMContentLoaded', function() {
+            const generatePDFButton = document.createElement('button');
+            generatePDFButton.className = 'primary';
+            generatePDFButton.style.marginTop = '20px';
+            generatePDFButton.textContent = 'Genereer PDF Rapport';
+            generatePDFButton.onclick = generatePDF;
+            document.querySelector('.form-container').appendChild(generatePDFButton);
+        });
+
+        // ... existing code ...
+
+        function saveVerzekerdeDetails() {
+            // Get all the values from the modal
+            const bedrijfsnaam = document.getElementById('modal_bedrijfsnaam').value;
+            const kvk = document.getElementById('modal_kvk').value;
+            const bedrijfsactiviteiten = document.getElementById('modal_bedrijfsactiviteiten').value;
+            const contactpersoon = document.getElementById('modal_contactpersoon').value;
+            const functie = document.getElementById('modal_functie').value;
+            const telefoonnummer = document.getElementById('modal_telefoonnummer').value;
+            const email = document.getElementById('modal_email').value;
+            
+            // Get address details
+            const straat = document.getElementById('modal_straat').value;
+            const huisnummer = document.getElementById('modal_huisnummer').value;
+            const postcode = document.getElementById('modal_postcode').value;
+            const plaats = document.getElementById('modal_plaats').value;
+            
+            // Get correspondence address details
+            const correspondentieGelijk = document.getElementById('modal_correspondentie_gelijk').checked;
+            const correspondentieStraat = document.getElementById('modal_correspondentie_straat').value;
+            const correspondentieHuisnummer = document.getElementById('modal_correspondentie_huisnummer').value;
+            const correspondentiePostcode = document.getElementById('modal_correspondentie_postcode').value;
+            const correspondentiePlaats = document.getElementById('modal_correspondentie_plaats').value;
+
+            // Update the summary view
+            document.getElementById('summary_bedrijfsnaam').textContent = bedrijfsnaam || '-';
+            document.getElementById('summary_kvk').textContent = kvk || '-';
+            
+            // Store the data in localStorage
+            const verzekerdeData = {
+                bedrijfsnaam,
+                kvk,
+                bedrijfsactiviteiten,
+                contactpersoon,
+                functie,
+                telefoonnummer,
+                email,
+                adres: {
+                    straat,
+                    huisnummer,
+                    postcode,
+                    plaats
+                },
+                correspondentie: correspondentieGelijk ? {
+                    straat,
+                    huisnummer,
+                    postcode,
+                    plaats
+                } : {
+                    straat: correspondentieStraat,
+                    huisnummer: correspondentieHuisnummer,
+                    postcode: correspondentiePostcode,
+                    plaats: correspondentiePlaats
+                }
+            };
+            
+            localStorage.setItem('verzekerdeData', JSON.stringify(verzekerdeData));
+            
+            // Close the modal
+            document.getElementById('verzekerdeModal').style.display = 'none';
+        }
+
+        function showVerzekerdeModal() {
+            // Get stored data
+            const storedData = localStorage.getItem('verzekerdeData');
+            if (storedData) {
+                const data = JSON.parse(storedData);
+                
+                // Fill in the form fields
+                document.getElementById('modal_bedrijfsnaam').value = data.bedrijfsnaam || '';
+                document.getElementById('modal_kvk').value = data.kvk || '';
+                document.getElementById('modal_bedrijfsactiviteiten').value = data.bedrijfsactiviteiten || '';
+                document.getElementById('modal_contactpersoon').value = data.contactpersoon || '';
+                document.getElementById('modal_functie').value = data.functie || '';
+                document.getElementById('modal_telefoonnummer').value = data.telefoonnummer || '';
+                document.getElementById('modal_email').value = data.email || '';
+                
+                // Fill in address fields
+                document.getElementById('modal_straat').value = data.adres.straat || '';
+                document.getElementById('modal_huisnummer').value = data.adres.huisnummer || '';
+                document.getElementById('modal_postcode').value = data.adres.postcode || '';
+                document.getElementById('modal_plaats').value = data.adres.plaats || '';
+                
+                // Handle correspondence address
+                const isSameAddress = JSON.stringify(data.adres) === JSON.stringify(data.correspondentie);
+                document.getElementById('modal_correspondentie_gelijk').checked = isSameAddress;
+                
+                if (!isSameAddress) {
+                    document.getElementById('modal_correspondentie_straat').value = data.correspondentie.straat || '';
+                    document.getElementById('modal_correspondentie_huisnummer').value = data.correspondentie.huisnummer || '';
+                    document.getElementById('modal_correspondentie_postcode').value = data.correspondentie.postcode || '';
+                    document.getElementById('modal_correspondentie_plaats').value = data.correspondentie.plaats || '';
+                }
+                
+                toggleCorrespondentieAdres(document.getElementById('modal_correspondentie_gelijk'));
+            }
+            
+            // Show the modal
+            document.getElementById('verzekerdeModal').style.display = 'block';
+        }
+
+        function toggleCorrespondentieAdres(checkbox) {
+            const correspondentieVelden = document.getElementById('correspondentie_adres_velden');
+            correspondentieVelden.style.display = checkbox.checked ? 'none' : 'block';
+            
+            if (checkbox.checked) {
+                // Clear correspondence address fields
+                document.getElementById('modal_correspondentie_straat').value = '';
+                document.getElementById('modal_correspondentie_huisnummer').value = '';
+                document.getElementById('modal_correspondentie_postcode').value = '';
+                document.getElementById('modal_correspondentie_plaats').value = '';
+            }
+        }
+        // ... existing code ...
+
+        function toggleNEN3140Details(checkbox) {
+            const detailsContainer = document.getElementById('nen3140_details');
+            detailsContainer.style.display = checkbox.checked ? 'block' : 'none';
+            if (!checkbox.checked) {
+                document.getElementById('nen3140_datum').value = '';
+                document.getElementById('nen3140_certificaat').value = '';
+            }
+        }
+
+        function toggleNEN1010Details(checkbox) {
+            const detailsContainer = document.getElementById('nen1010_details');
+            detailsContainer.style.display = checkbox.checked ? 'block' : 'none';
+            if (!checkbox.checked) {
+                document.getElementById('nen1010_datum').value = '';
+                document.getElementById('nen1010_certificaat').value = '';
+            }
+        }
+
+        function toggleThermografischDetails(checkbox) {
+            const detailsContainer = document.getElementById('thermografisch_details');
+            detailsContainer.style.display = checkbox.checked ? 'block' : 'none';
+            if (!checkbox.checked) {
+                document.getElementById('thermografisch_datum').value = '';
+                document.getElementById('thermografisch_rapport').value = '';
+            }
+        }
+
+        function toggleUltrasoonDetails(checkbox) {
+            const detailsContainer = document.getElementById('ultrasoon_details');
+            detailsContainer.style.display = checkbox.checked ? 'block' : 'none';
+            if (!checkbox.checked) {
+                document.getElementById('ultrasoon_datum').value = '';
+                document.getElementById('ultrasoon_rapport').value = '';
+            }
+        }
+
+        function toggleKeuringOverigDetails(checkbox) {
+            const detailsContainer = document.getElementById('keuring_overig_details');
+            detailsContainer.style.display = checkbox.checked ? 'block' : 'none';
+            if (!checkbox.checked) {
+                document.getElementById('keuring_overig_type').value = '';
+                document.getElementById('keuring_overig_datum').value = '';
+                document.getElementById('keuring_overig_rapport').value = '';
+            }
+        }
+
+        function saveElektraDetails() {
+            // Get all the values from the modal
+            const keuringen = {
+                nen3140: {
+                    uitgevoerd: document.getElementById('keuring_nen3140').checked,
+                    datum: document.getElementById('nen3140_datum').value,
+                    certificaat: document.getElementById('nen3140_certificaat').value
+                },
+                nen1010: {
+                    uitgevoerd: document.getElementById('keuring_nen1010').checked,
+                    datum: document.getElementById('nen1010_datum').value,
+                    certificaat: document.getElementById('nen1010_certificaat').value
+                },
+                thermografisch: {
+                    uitgevoerd: document.getElementById('keuring_thermografisch').checked,
+                    datum: document.getElementById('thermografisch_datum').value,
+                    rapport: document.getElementById('thermografisch_rapport').value
+                },
+                ultrasoon: {
+                    uitgevoerd: document.getElementById('keuring_ultrasoon').checked,
+                    datum: document.getElementById('ultrasoon_datum').value,
+                    rapport: document.getElementById('ultrasoon_rapport').value
+                },
+                overig: {
+                    uitgevoerd: document.getElementById('keuring_overig').checked,
+                    type: document.getElementById('keuring_overig_type').value,
+                    datum: document.getElementById('keuring_overig_datum').value,
+                    rapport: document.getElementById('keuring_overig_rapport').value
+                }
+            };
+
+            const onderhoud = {
+                geen: document.getElementById('elektra_onderhoud_geen').checked,
+                erkend_afroep: document.getElementById('elektra_onderhoud_erkend_afroep').checked,
+                erkend_periodiek: document.getElementById('elektra_onderhoud_erkend_periodiek').checked
+            };
+
+            // Store the data in localStorage
+            const elektraData = {
+                keuringen,
+                onderhoud
+            };
+            
+            localStorage.setItem('elektraData', JSON.stringify(elektraData));
+            
+            // Update summary view
+            updateElektraSummary(keuringen, onderhoud);
+            
+            // Close the modal
+            document.getElementById('elektraModal').style.display = 'none';
+        }
+
+        function updateElektraSummary(keuringen, onderhoud) {
+            // Update the summary view with the selected inspections and maintenance
+            const summaryText = [];
+            
+            if (keuringen.nen3140.uitgevoerd) summaryText.push('NEN 3140');
+            if (keuringen.nen1010.uitgevoerd) summaryText.push('NEN 1010');
+            if (keuringen.thermografisch.uitgevoerd) summaryText.push('Thermografisch');
+            if (keuringen.ultrasoon.uitgevoerd) summaryText.push('Ultrasoon');
+            if (keuringen.overig.uitgevoerd) summaryText.push('Overig');
+            
+            if (summaryText.length === 0) summaryText.push('Geen keuringen');
+            
+            document.getElementById('summary_elektra_keuringen').textContent = summaryText.join(', ');
+            
+            // Update maintenance summary
+            const onderhoudText = [];
+            if (onderhoud.erkend_periodiek) onderhoudText.push('Periodiek onderhoud');
+            else if (onderhoud.erkend_afroep) onderhoudText.push('Onderhoud op afroep');
+            else onderhoudText.push('Geen onderhoud');
+            
+            document.getElementById('summary_elektra_onderhoud').textContent = onderhoudText.join(', ');
+        }
+
+        // ... existing code ...
+    </script>
+</body>
+</html> 

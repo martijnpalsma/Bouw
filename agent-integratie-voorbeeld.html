@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Integratie Voorbeeld</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .example-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .method-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .method-card h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .pros, .cons {
+            padding: 1rem;
+            border-radius: 5px;
+        }
+
+        .pros {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .cons {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .pros h4, .cons h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .test-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .test-section h2 {
+            margin-top: 0;
+        }
+
+        .test-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Agent Integratie Voorbeeld</h1>
+        <p>Deze pagina demonstreert hoe andere agents kunnen communiceren met de Brandweer & Watervoorziening Agent.</p>
+
+        <h2>📋 Integratie Methoden</h2>
+
+        <div class="method-card">
+            <h3>1️⃣ URL Parameters (Eenvoudig)</h3>
+            <p>De eenvoudigste methode: stuur data via URL parameters.</p>
+            
+            <div class="code-block">
+<pre>// JavaScript voorbeeld
+function sendToBrandweer(postcode, huisnummer) {
+    const url = `brandweer-watervoorziening.html?postcode=${postcode}&huisnummer=${huisnummer}`;
+    window.location.href = url;
+    // Of voor nieuw venster:
+    // window.open(url, '_blank');
+}</pre>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Voordelen</h4>
+                    <ul>
+                        <li>Zeer eenvoudig</li>
+                        <li>Geen dependencies</li>
+                        <li>Werkt overal</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Nadelen</h4>
+                    <ul>
+                        <li>Beperkte data</li>
+                        <li>Zichtbaar in URL</li>
+                        <li>Navigeert weg</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="method-card">
+            <h3>2️⃣ LocalStorage (Persistente Data)</h3>
+            <p>Gebruik LocalStorage voor complexere data die beschikbaar blijft.</p>
+            
+            <div class="code-block">
+<pre>// Agent A: Data verzenden
+const locationData = {
+    postcode: "1012 JS",
+    huisnummer: "45",
+    straatnaam: "Damstraat",
+    plaats: "Amsterdam",
+    extra: {
+        gebouwType: "kantoor",
+        verdiepingen: 5
+    }
+};
+localStorage.setItem('brandweerAgentInput', JSON.stringify(locationData));
+window.location.href = 'brandweer-watervoorziening.html';
+
+// Brandweer Agent: Data ontvangen
+const data = localStorage.getItem('brandweerAgentInput');
+if (data) {
+    const location = JSON.parse(data);
+    // Gebruik de data...
+    localStorage.removeItem('brandweerAgentInput'); // Opruimen
+}</pre>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Voordelen</h4>
+                    <ul>
+                        <li>Complexe data mogelijk</li>
+                        <li>Persistent</li>
+                        <li>Niet zichtbaar in URL</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Nadelen</h4>
+                    <ul>
+                        <li>5-10MB limiet</li>
+                        <li>Synchronous API</li>
+                        <li>Opruimen nodig</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="method-card">
+            <h3>3️⃣ PostMessage API (Cross-window)</h3>
+            <p>Voor communicatie tussen verschillende vensters/iframes.</p>
+            
+            <div class="code-block">
+<pre>// Agent A: Open en verstuur
+const brandweerWindow = window.open('brandweer-watervoorziening.html');
+
+// Wacht tot venster geladen is
+setTimeout(() => {
+    brandweerWindow.postMessage({
+        type: 'LOCATION_DATA',
+        data: {
+            postcode: "1012 JS",
+            huisnummer: "45"
+        }
+    }, '*'); // In productie: specificeer origin
+}, 1000);
+
+// Brandweer Agent: Ontvang data
+window.addEventListener('message', (event) => {
+    // Valideer origin in productie!
+    if (event.data.type === 'LOCATION_DATA') {
+        const { postcode, huisnummer } = event.data.data;
+        analyzeLocation(postcode, huisnummer);
+    }
+});</pre>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Voordelen</h4>
+                    <ul>
+                        <li>Real-time communicatie</li>
+                        <li>Bidirectioneel</li>
+                        <li>Veilig (origin check)</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Nadelen</h4>
+                    <ul>
+                        <li>Complexer</li>
+                        <li>Timing issues</li>
+                        <li>Origin validatie nodig</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="method-card">
+            <h3>4️⃣ REST API (Backend)</h3>
+            <p>Voor productie: gebruik een backend API voor data uitwisseling.</p>
+            
+            <div class="code-block">
+<pre>// Backend endpoint (Node.js/Express voorbeeld)
+app.post('/api/brandweer/analyze', async (req, res) => {
+    const { postcode, huisnummer } = req.body;
+    
+    // Validatie
+    if (!validatePostcode(postcode)) {
+        return res.status(400).json({ error: 'Ongeldige postcode' });
+    }
+    
+    // Analyseer
+    const result = await analyzeBrandweer(postcode, huisnummer);
+    res.json(result);
+});
+
+// Agent A: Request
+const response = await fetch('/api/brandweer/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ postcode: "1012 JS", huisnummer: "45" })
+});
+const data = await response.json();</pre>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Voordelen</h4>
+                    <ul>
+                        <li>Veilig</li>
+                        <li>Schaalbaar</li>
+                        <li>Validatie mogelijk</li>
+                        <li>Rate limiting</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Nadelen</h4>
+                    <ul>
+                        <li>Backend vereist</li>
+                        <li>Complexer setup</li>
+                        <li>Hosting kosten</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h2>🧪 Live Test Sectie</h2>
+        <div class="test-section">
+            <h3>Test de integratie methoden</h3>
+            <p>Gebruik onderstaande knoppen om de verschillende integratie methoden te testen.</p>
+            
+            <input type="text" class="test-input" id="testPostcode" placeholder="Postcode (bijv. 1012 JS)" value="1012 JS">
+            <input type="text" class="test-input" id="testHuisnummer" placeholder="Huisnummer (bijv. 45)" value="45">
+
+            <button class="btn" onclick="testURLMethod()">🔗 Test URL Methode</button>
+            <button class="btn" onclick="testLocalStorageMethod()">💾 Test LocalStorage Methode</button>
+            <button class="btn" onclick="testPostMessageMethod()">📨 Test PostMessage Methode</button>
+        </div>
+
+        <h2>📊 Data Formaat Specificatie</h2>
+        
+        <div class="example-box">
+            <h3>Input Data Format</h3>
+            <div class="code-block">
+<pre>{
+    "postcode": "1012 JS",      // Verplicht: Nederlandse postcode
+    "huisnummer": "45",          // Verplicht: Huisnummer
+    "straatnaam": "Damstraat",   // Optioneel: Straatnaam
+    "plaats": "Amsterdam",       // Optioneel: Plaatsnaam
+    "extra": {                   // Optioneel: Extra context
+        "gebouwType": "kantoor",
+        "verdiepingen": 5,
+        "gebruiksdoel": "kantoor"
+    }
+}</pre>
+            </div>
+        </div>
+
+        <div class="example-box">
+            <h3>Output Data Format</h3>
+            <div class="code-block">
+<pre>{
+    "location": {
+        "postcode": "1012 JS",
+        "huisnummer": "45",
+        "coordinates": { "lat": 52.3702, "lon": 4.8952 }
+    },
+    "fireStation": {
+        "name": "Brandweer Kazerne Centrum",
+        "type": "beroeps",
+        "distance": 2.3,
+        "duration": 5,
+        "equipment": ["Tankautospuit", "Hoogwerker"]
+    },
+    "waterSources": [
+        {
+            "type": "Brandkraan",
+            "distance": 15,
+            "capacity": "60 m³/uur"
+        }
+    ],
+    "timestamp": "2026-07-10T21:10:00.000Z"
+}</pre>
+            </div>
+        </div>
+
+        <h2>🔧 Implementatie Checklist</h2>
+        
+        <div class="example-box">
+            <h3>Voor nieuwe agents die willen integreren:</h3>
+            <ul>
+                <li>✅ Kies de juiste integratie methode voor jouw use case</li>
+                <li>✅ Valideer postcode format (1234 AB)</li>
+                <li>✅ Valideer huisnummer (niet leeg)</li>
+                <li>✅ Implementeer error handling</li>
+                <li>✅ Test met verschillende postcodes</li>
+                <li>✅ Documenteer de integratie in je eigen agent</li>
+                <li>✅ Overweeg caching voor herhaalde requests</li>
+                <li>✅ Implementeer loading states</li>
+            </ul>
+        </div>
+
+        <h2>📝 Code Snippets</h2>
+        
+        <div class="example-box">
+            <h3>Postcode Validatie</h3>
+            <div class="code-block">
+<pre>function validateDutchPostcode(postcode) {
+    // Nederlandse postcode: 1234 AB of 1234AB
+    const regex = /^[1-9][0-9]{3}\s?[A-Z]{2}$/i;
+    return regex.test(postcode);
+}
+
+function formatPostcode(postcode) {
+    // Normaliseer naar 1234 AB format
+    const cleaned = postcode.replace(/\s/g, '').toUpperCase();
+    return cleaned.slice(0, 4) + ' ' + cleaned.slice(4);
+}</pre>
+            </div>
+        </div>
+
+        <div class="example-box">
+            <h3>Complete Integratie Functie</h3>
+            <div class="code-block">
+<pre>async function sendToBrandweerAgent(locationData) {
+    // Validatie
+    if (!validateDutchPostcode(locationData.postcode)) {
+        throw new Error('Ongeldige postcode');
+    }
+    
+    if (!locationData.huisnummer) {
+        throw new Error('Huisnummer is verplicht');
+    }
+    
+    // Format postcode
+    locationData.postcode = formatPostcode(locationData.postcode);
+    
+    // Methode 1: URL Parameters (eenvoudig)
+    if (window.INTEGRATION_METHOD === 'url') {
+        const url = `brandweer-watervoorziening.html?` +
+            `postcode=${encodeURIComponent(locationData.postcode)}&` +
+            `huisnummer=${encodeURIComponent(locationData.huisnummer)}`;
+        window.location.href = url;
+        return;
+    }
+    
+    // Methode 2: LocalStorage (meer data)
+    if (window.INTEGRATION_METHOD === 'localstorage') {
+        localStorage.setItem('brandweerAgentInput', JSON.stringify(locationData));
+        window.location.href = 'brandweer-watervoorziening.html';
+        return;
+    }
+    
+    // Methode 3: PostMessage (cross-window)
+    if (window.INTEGRATION_METHOD === 'postmessage') {
+        const brandweerWindow = window.open('brandweer-watervoorziening.html');
+        
+        // Wacht tot venster geladen is
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                brandweerWindow.postMessage({
+                    type: 'LOCATION_DATA',
+                    data: locationData
+                }, window.location.origin);
+                resolve();
+            }, 1000);
+        });
+    }
+}</pre>
+            </div>
+        </div>
+
+        <a href="index.html" class="btn" style="margin-top: 2rem;">🏠 Terug naar Home</a>
+    </div>
+
+    <script>
+        function testURLMethod() {
+            const postcode = document.getElementById('testPostcode').value;
+            const huisnummer = document.getElementById('testHuisnummer').value;
+            
+            if (!postcode || !huisnummer) {
+                alert('Vul postcode en huisnummer in');
+                return;
+            }
+            
+            const url = `brandweer-watervoorziening.html?postcode=${encodeURIComponent(postcode)}&huisnummer=${encodeURIComponent(huisnummer)}`;
+            window.open(url, '_blank');
+        }
+
+        function testLocalStorageMethod() {
+            const postcode = document.getElementById('testPostcode').value;
+            const huisnummer = document.getElementById('testHuisnummer').value;
+            
+            if (!postcode || !huisnummer) {
+                alert('Vul postcode en huisnummer in');
+                return;
+            }
+            
+            const locationData = {
+                postcode: postcode,
+                huisnummer: huisnummer,
+                straatnaam: "Teststraat",
+                plaats: "Amsterdam",
+                extra: {
+                    source: "integration-example",
+                    timestamp: new Date().toISOString()
+                }
+            };
+            
+            localStorage.setItem('brandweerAgentInput', JSON.stringify(locationData));
+            window.open('brandweer-watervoorziening.html', '_blank');
+        }
+
+        function testPostMessageMethod() {
+            const postcode = document.getElementById('testPostcode').value;
+            const huisnummer = document.getElementById('testHuisnummer').value;
+            
+            if (!postcode || !huisnummer) {
+                alert('Vul postcode en huisnummer in');
+                return;
+            }
+            
+            const brandweerWindow = window.open('brandweer-watervoorziening.html');
+            
+            setTimeout(() => {
+                brandweerWindow.postMessage({
+                    type: 'LOCATION_DATA',
+                    data: {
+                        postcode: postcode,
+                        huisnummer: huisnummer,
+                        straatnaam: "Teststraat",
+                        plaats: "Amsterdam"
+                    }
+                }, window.location.origin);
+                
+                alert('✅ Data verzonden via PostMessage!\n\nHet nieuwe venster zou de data moeten ontvangen.');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

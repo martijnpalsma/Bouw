@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Orchestration Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .sidebar h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .agent-list {
+            list-style: none;
+        }
+
+        .agent-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .agent-item:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .agent-item.active {
+            border-color: #667eea;
+            background: #e7f3ff;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-name {
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .agent-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-idle {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .agent-description {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .content-area {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .content-area h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-canvas {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            min-height: 400px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .workflow-nodes {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .workflow-node {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 1.5rem;
+            min-width: 150px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .workflow-node-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .workflow-node-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .workflow-arrow {
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .action-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .log-panel {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            border-bottom: 1px solid #34495e;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .log-time {
+            color: #95a5a6;
+            min-width: 80px;
+        }
+
+        .log-level {
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        .log-level-info {
+            color: #3498db;
+        }
+
+        .log-level-success {
+            color: #2ecc71;
+        }
+
+        .log-level-warning {
+            color: #f39c12;
+        }
+
+        .log-level-error {
+            color: #e74c3c;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            margin: 0;
+        }
+
+        .close-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #6c757d;
+            border: none;
+            background: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .action-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🤖</span>
+                <span>Agent Orchestration Platform</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="agent-platform.html" class="nav-link active">🎯 Dashboard</a></li>
+                <li><a href="agent-workflow-builder.html" class="nav-link">🔄 Workflows</a></li>
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🤖 Agent Orchestration Platform</h1>
+            <p>Beheer, monitor en orkestreer al je agents vanaf één centrale plek</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🤖</div>
+                <div class="stat-info">
+                    <h3 id="total-agents">6</h3>
+                    <p>Geregistreerde Agents</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <h3 id="active-agents">5</h3>
+                    <p>Actieve Agents</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-info">
+                    <h3 id="total-workflows">1</h3>
+                    <p>Actieve Workflows</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-info">
+                    <h3 id="executions-today">12</h3>
+                    <p>Uitvoeringen Vandaag</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <h2>📋 Geregistreerde Agents</h2>
+                <ul class="agent-list" id="agent-list">
+                    <!-- Dynamisch gevuld -->
+                </ul>
+                <button class="btn" onclick="openAddAgentModal()" style="width: 100%; margin-top: 1rem;">
+                    ➕ Nieuwe Agent Toevoegen
+                </button>
+            </aside>
+
+            <main class="content-area">
+                <h2>🎯 Workflow Overzicht</h2>
+                
+                <div class="workflow-canvas" id="workflow-canvas">
+                    <div class="workflow-nodes">
+                        <div class="workflow-node">
+                            <div class="workflow-node-icon">📋</div>
+                            <div class="workflow-node-name">Gebouw Formulier</div>
+                            <small>Input Agent</small>
+                        </div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-node">
+                            <div class="workflow-node-icon">🚒</div>
+                            <div class="workflow-node-name">Brandweer Agent</div>
+                            <small>Analyse</small>
+                        </div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-node">
+                            <div class="workflow-node-icon">🏢</div>
+                            <div class="workflow-node-name">Bouw Systeem</div>
+                            <small>Output Agent</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-panel">
+                    <button class="btn btn-success" onclick="startWorkflow()">
+                        ▶️ Start Workflow
+                    </button>
+                    <button class="btn btn-warning" onclick="pauseWorkflow()">
+                        ⏸️ Pauzeer
+                    </button>
+                    <button class="btn btn-danger" onclick="stopWorkflow()">
+                        ⏹️ Stop
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetWorkflow()">
+                        🔄 Reset
+                    </button>
+                    <button class="btn" onclick="window.location.href='agent-workflow-builder.html'">
+                        ✏️ Bewerk Workflow
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportWorkflow()">
+                        💾 Exporteer
+                    </button>
+                </div>
+
+                <h2 style="margin-top: 2rem;">📊 Activiteiten Log</h2>
+                <div class="log-panel" id="log-panel">
+                    <!-- Dynamisch gevuld -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal voor nieuwe agent toevoegen -->
+    <div class="modal" id="add-agent-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Nieuwe Agent Toevoegen</h2>
+                <button class="close-btn" onclick="closeAddAgentModal()">&times;</button>
+            </div>
+            <form onsubmit="addNewAgent(event)">
+                <div class="form-group">
+                    <label for="agent-name">Agent Naam</label>
+                    <input type="text" id="agent-name" required placeholder="Bijv. Energie Analyse Agent">
+                </div>
+                <div class="form-group">
+                    <label for="agent-icon">Icoon (emoji)</label>
+                    <input type="text" id="agent-icon" required placeholder="Bijv. ⚡" maxlength="2">
+                </div>
+                <div class="form-group">
+                    <label for="agent-type">Agent Type</label>
+                    <select id="agent-type" required>
+                        <option value="input">Input Agent</option>
+                        <option value="processing">Verwerkings Agent</option>
+                        <option value="analysis">Analyse Agent</option>
+                        <option value="output">Output Agent</option>
+                        <option value="integration">Integratie Agent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="agent-description">Beschrijving</label>
+                    <textarea id="agent-description" required placeholder="Wat doet deze agent?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="agent-url">URL/Endpoint</label>
+                    <input type="text" id="agent-url" required placeholder="agent-naam.html">
+                </div>
+                <div class="form-group">
+                    <label for="agent-inputs">Input Parameters (comma separated)</label>
+                    <input type="text" id="agent-inputs" placeholder="postcode, huisnummer">
+                </div>
+                <div class="form-group">
+                    <label for="agent-outputs">Output Parameters (comma separated)</label>
+                    <input type="text" id="agent-outputs" placeholder="distance, duration">
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">💾 Agent Opslaan</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Agent Registry
+        let agents = [
+            {
+                id: 'gebouw-formulier',
+                name: 'Gebouw Formulier Agent',
+                icon: '📋',
+                type: 'input',
+                description: 'Registreert gebouwinformatie, constructiedetails en beveiligingsmaatregelen',
+                url: 'gebouw-formulier.html',
+                status: 'active',
+                inputs: [],
+                outputs: ['postcode', 'huisnummer', 'straatnaam', 'plaats', 'gebouwType']
+            },
+            {
+                id: 'brandweer-agent',
+                name: 'Brandweer & Watervoorziening',
+                icon: '🚒',
+                type: 'analysis',
+                description: 'Analyseert brandweerzorgen en watervoorziening op basis van locatie',
+                url: 'brandweer-watervoorziening.html',
+                status: 'active',
+                inputs: ['postcode', 'huisnummer'],
+                outputs: ['fireStation', 'distance', 'duration', 'waterSources']
+            },
+            {
+                id: 'bouw-systeem',
+                name: 'Bouw Informatie Systeem',
+                icon: '🏢',
+                type: 'output',
+                description: 'Overzicht van alle bouwprojecten en gebouwinformatie',
+                url: 'bouw-informatie-systeem.html',
+                status: 'idle',
+                inputs: ['gebouwData', 'brandweerData'],
+                outputs: ['rapport', 'pdf']
+            },
+            {
+                id: 'gebouwmaterialen-agent',
+                name: 'Gebouwmaterialen Agent',
+                icon: '🧱',
+                type: 'analysis',
+                description: 'Berekent benodigde materialen, kosten en duurzaamheid voor bouwprojecten',
+                url: 'gebouwmaterialen-agent.html',
+                status: 'active',
+                inputs: ['gebouwType', 'oppervlakte', 'verdiepingen'],
+                outputs: ['materials', 'totalCost', 'sustainabilityScore']
+            },
+            {
+                id: 'open-data-agent',
+                name: 'Open Data Agent',
+                icon: '📊',
+                type: 'integration',
+                description: 'Haalt data op uit Nederlandse overheids open data bronnen (BAG, BRO, PDOK, CBS)',
+                url: 'open-data-agent.html',
+                status: 'active',
+                inputs: ['postcode', 'huisnummer'],
+                outputs: ['gebouwInfo', 'bodemData', 'statistieken']
+            },
+            {
+                id: 'meet-agent',
+                name: 'Meet Agent',
+                icon: '📏',
+                type: 'processing',
+                description: 'Berekent oppervlaktes, volumes, omtrekken en complexe gebouwmetingen',
+                url: 'meet-agent.html',
+                status: 'active',
+                inputs: ['afmetingen', 'vorm'],
+                outputs: ['oppervlakte', 'volume', 'omtrek', 'materiaalSchatting']
+            }
+        ];
+
+        // Workflow State
+        let workflowState = {
+            isRunning: false,
+            isPaused: false,
+            currentStep: 0,
+            executionCount: 0
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAgents();
+            loadLogs();
+            updateStats();
+            
+            // Load agents from localStorage if available
+            const storedAgents = localStorage.getItem('registeredAgents');
+            if (storedAgents) {
+                agents = JSON.parse(storedAgents);
+                loadAgents();
+                updateStats();
+            }
+        });
+
+        function loadAgents() {
+            const agentList = document.getElementById('agent-list');
+            agentList.innerHTML = agents.map(agent => `
+                <li class="agent-item" onclick="selectAgent('${agent.id}')">
+                    <div class="agent-header">
+                        <span class="agent-name">${agent.icon} ${agent.name}</span>
+                        <span class="agent-status status-${agent.status}">${getStatusText(agent.status)}</span>
+                    </div>
+                    <div class="agent-description">${agent.description}</div>
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #6c757d;">
+                        Type: ${agent.type} | Inputs: ${agent.inputs.length} | Outputs: ${agent.outputs.length}
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'active': 'Actief',
+                'idle': 'Stand-by',
+                'offline': 'Offline'
+            };
+            return statusMap[status] || status;
+        }
+
+        function selectAgent(agentId) {
+            const agent = agents.find(a => a.id === agentId);
+            if (agent) {
+                addLog('info', `Agent geselecteerd: ${agent.name}`);
+                window.open(agent.url, '_blank');
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('total-agents').textContent = agents.length;
+            document.getElementById('active-agents').textContent = agents.filter(a => a.status === 'active').length;
+            document.getElementById('total-workflows').textContent = '1';
+            document.getElementById('executions-today').textContent = workflowState.executionCount;
+        }
+
+        function loadLogs() {
+            addLog('info', 'Platform geïnitialiseerd');
+            addLog('success', `${agents.length} agents geladen`);
+            addLog('info', 'Klaar voor workflow uitvoering');
+        }
+
+        function addLog(level, message) {
+            const logPanel = document.getElementById('log-panel');
+            const time = new Date().toLocaleTimeString('nl-NL');
+            const levelMap = {
+                'info': 'INFO',
+                'success': 'SUCCESS',
+                'warning': 'WARNING',
+                'error': 'ERROR'
+            };
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-level log-level-${level}">${levelMap[level]}</span>
+                <span>${message}</span>
+            `;
+            
+            logPanel.insertBefore(logEntry, logPanel.firstChild);
+            
+            // Limit to 50 logs
+            while (logPanel.children.length > 50) {
+                logPanel.removeChild(logPanel.lastChild);
+            }
+        }
+
+        function startWorkflow() {
+            if (workflowState.isRunning) {
+                addLog('warning', 'Workflow is al actief');
+                return;
+            }
+            
+            workflowState.isRunning = true;
+            workflowState.isPaused = false;
+            workflowState.executionCount++;
+            
+            addLog('success', 'Workflow gestart');
+            addLog('info', 'Stap 1: Gebouw Formulier Agent - Data verzamelen');
+            
+            setTimeout(() => {
+                addLog('success', 'Stap 1 voltooid - Data ontvangen');
+                addLog('info', 'Stap 2: Brandweer Agent - Analyse uitvoeren');
+            }, 2000);
+            
+            setTimeout(() => {
+                addLog('success', 'Stap 2 voltooid - Analyse compleet');
+                addLog('info', 'Stap 3: Bouw Systeem - Rapport genereren');
+            }, 4000);
+            
+            setTimeout(() => {
+                addLog('success', 'Workflow voltooid');
+                addLog('info', 'Resultaat: PDF rapport gegenereerd');
+                workflowState.isRunning = false;
+                updateStats();
+            }, 6000);
+        }
+
+        function pauseWorkflow() {
+            if (!workflowState.isRunning) {
+                addLog('warning', 'Geen actieve workflow om te pauzeren');
+                return;
+            }
+            
+            workflowState.isPaused = !workflowState.isPaused;
+            if (workflowState.isPaused) {
+                addLog('warning', 'Workflow gepauzeerd');
+            } else {
+                addLog('info', 'Workflow hervat');
+            }
+        }
+
+        function stopWorkflow() {
+            if (!workflowState.isRunning) {
+                addLog('warning', 'Geen actieve workflow om te stoppen');
+                return;
+            }
+            
+            workflowState.isRunning = false;
+            workflowState.isPaused = false;
+            addLog('error', 'Workflow gestopt');
+        }
+
+        function resetWorkflow() {
+            workflowState.isRunning = false;
+            workflowState.isPaused = false;
+            workflowState.currentStep = 0;
+            addLog('info', 'Workflow gereset');
+        }
+
+        function exportWorkflow() {
+            const workflowData = {
+                agents: agents,
+                workflow: {
+                    name: 'Bouw Analyse Workflow',
+                    steps: [
+                        { agent: 'gebouw-formulier', action: 'collect_data' },
+                        { agent: 'brandweer-agent', action: 'analyze_location' },
+                        { agent: 'bouw-systeem', action: 'generate_report' }
+                    ]
+                },
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(workflowData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `workflow_export_${Date.now()}.json`;
+            link.click();
+            
+            addLog('success', 'Workflow geëxporteerd');
+        }
+
+        function openAddAgentModal() {
+            document.getElementById('add-agent-modal').classList.add('active');
+        }
+
+        function closeAddAgentModal() {
+            document.getElementById('add-agent-modal').classList.remove('active');
+        }
+
+        function addNewAgent(event) {
+            event.preventDefault();
+            
+            const newAgent = {
+                id: 'agent-' + Date.now(),
+                name: document.getElementById('agent-name').value,
+                icon: document.getElementById('agent-icon').value,
+                type: document.getElementById('agent-type').value,
+                description: document.getElementById('agent-description').value,
+                url: document.getElementById('agent-url').value,
+                status: 'idle',
+                inputs: document.getElementById('agent-inputs').value.split(',').map(s => s.trim()).filter(s => s),
+                outputs: document.getElementById('agent-outputs').value.split(',').map(s => s.trim()).filter(s => s)
+            };
+            
+            agents.push(newAgent);
+            localStorage.setItem('registeredAgents', JSON.stringify(agents));
+            
+            loadAgents();
+            updateStats();
+            closeAddAgentModal();
+            
+            addLog('success', `Nieuwe agent toegevoegd: ${newAgent.name}`);
+            
+            // Reset form
+            event.target.reset();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('add-agent-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddAgentModal();
+            }
+        });
+    </script>
+</body>
+</html>

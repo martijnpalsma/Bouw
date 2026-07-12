@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gebouwmaterialen Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-section h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .material-list {
+            list-style: none;
+        }
+
+        .material-item {
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .material-item:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .material-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .material-name {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .material-quantity {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+
+        .material-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .sustainability-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+
+        .badge-green {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-yellow {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-red {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #6c757d;
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span style="font-size: 2rem;">🧱</span>
+                <span>Gebouwmaterialen Agent</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="agent-platform.html" class="nav-link">🎯 Dashboard</a></li>
+                <li><a href="agent-workflow-builder.html" class="nav-link">🔄 Workflows</a></li>
+                <li><a href="gebouwmaterialen-agent.html" class="nav-link active">🧱 Materialen</a></li>
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🧱 Gebouwmaterialen Agent</h1>
+            <p>Bereken benodigde materialen en duurzaamheid voor bouwprojecten</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>📥 Project Gegevens</h2>
+                
+                <div class="alert alert-info">
+                    <strong>ℹ️ Let op:</strong> Deze agent kan gebouwgegevens ontvangen van andere agents of handmatig worden ingevoerd.
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="gebouwType">Gebouw Type</label>
+                        <select id="gebouwType">
+                            <option value="woning">Woning</option>
+                            <option value="kantoor">Kantoor</option>
+                            <option value="industrie">Industrie</option>
+                            <option value="winkel">Winkel</option>
+                            <option value="school">School</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="oppervlakte">Oppervlakte (m²)</label>
+                        <input type="number" id="oppervlakte" placeholder="200" value="200">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="verdiepingen">Aantal Verdiepingen</label>
+                        <input type="number" id="verdiepingen" placeholder="2" value="2" min="1">
+                    </div>
+                    <div class="input-field">
+                        <label for="bouwniveau">Bouw Niveau</label>
+                        <select id="bouwniveau">
+                            <option value="basis">Basis</option>
+                            <option value="gemiddeld">Gemiddeld</option>
+                            <option value="hoogwaardig">Hoogwaardig</option>
+                            <option value="luxe">Luxe</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="duurzaamheid">Duurzaamheidsniveau</label>
+                        <select id="duurzaamheid">
+                            <option value="standaard">Standaard</option>
+                            <option value="beng">BENG</option>
+                            <option value="breeam">BREEAM</option>
+                            <option value="passiefhuis">Passiefhuis</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="isolatie">Isolatie Type</label>
+                        <select id="isolatie">
+                            <option value="mineraal">Minerale wol</option>
+                            <option value="eps">EPS (Piepschuim)</option>
+                            <option value="pir">PIR/PUR</option>
+                            <option value="cellulose">Cellulose</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="calculateMaterials()">🧮 Bereken Materialen</button>
+                <button class="btn btn-secondary" onclick="receiveFromAgent()" style="margin-left: 1rem;">📥 Ontvang van Agent</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Materialen worden berekend...</p>
+            </div>
+
+            <div class="results-section" id="results">
+                <h2 style="color: #667eea; margin-bottom: 1.5rem;">📊 Materialen Overzicht</h2>
+
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>💰 Kosten Samenvatting</h3>
+                        <div class="info-row">
+                            <span class="info-label">Totale Materiaalkosten</span>
+                            <span class="info-value" id="total-cost">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Per m²</span>
+                            <span class="info-value" id="cost-per-sqm">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Duurzaamheid Score</span>
+                            <span class="info-value" id="sustainability-score">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">CO₂ Impact</span>
+                            <span class="info-value" id="co2-impact">-</span>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>📦 Levering & Logistiek</h3>
+                        <div class="info-row">
+                            <span class="info-label">Geschat Gewicht</span>
+                            <span class="info-value" id="total-weight">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Aantal Vrachtwagens</span>
+                            <span class="info-value" id="trucks-needed">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Levertijd</span>
+                            <span class="info-value" id="delivery-time">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Opslagruimte Nodig</span>
+                            <span class="info-value" id="storage-space">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="color: #667eea; margin: 2rem 0 1rem;">🧱 Materialen Lijst</h3>
+                <ul class="material-list" id="material-list">
+                    <!-- Dynamisch gevuld -->
+                </ul>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem;">
+                    <button class="btn" onclick="exportResults()">📤 Exporteer JSON</button>
+                    <button class="btn btn-secondary" onclick="generatePDF()">📄 Genereer PDF</button>
+                    <button class="btn btn-secondary" onclick="sendToNextAgent()">➡️ Naar Volgende Agent</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AGENT_CONFIG = {
+            id: 'gebouwmaterialen-agent',
+            name: 'Gebouwmaterialen Agent',
+            version: '1.0.0',
+            type: 'analysis'
+        };
+
+        let calculationResults = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAgentCommunication();
+        });
+
+        function setupAgentCommunication() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gebouwType = urlParams.get('gebouwType');
+            const oppervlakte = urlParams.get('oppervlakte');
+            
+            if (gebouwType && oppervlakte) {
+                document.getElementById('gebouwType').value = gebouwType;
+                document.getElementById('oppervlakte').value = oppervlakte;
+                
+                const verdiepingen = urlParams.get('verdiepingen');
+                if (verdiepingen) document.getElementById('verdiepingen').value = verdiepingen;
+                
+                calculateMaterials();
+            }
+
+            const storedData = localStorage.getItem('gebouwmaterialen-input');
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    document.getElementById('gebouwType').value = data.gebouwType || 'woning';
+                    document.getElementById('oppervlakte').value = data.oppervlakte || 200;
+                    document.getElementById('verdiepingen').value = data.verdiepingen || 2;
+                    localStorage.removeItem('gebouwmaterialen-input');
+                    calculateMaterials();
+                } catch (e) {
+                    console.error('Error:', e);
+                }
+            }
+
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'AGENT_DATA' && event.data.targetAgent === AGENT_CONFIG.id) {
+                    const data = event.data.payload;
+                    if (data.gebouwType) document.getElementById('gebouwType').value = data.gebouwType;
+                    if (data.oppervlakte) document.getElementById('oppervlakte').value = data.oppervlakte;
+                    if (data.verdiepingen) document.getElementById('verdiepingen').value = data.verdiepingen;
+                    calculateMaterials();
+                }
+            });
+        }
+
+        async function calculateMaterials() {
+            const gebouwType = document.getElementById('gebouwType').value;
+            const oppervlakte = parseFloat(document.getElementById('oppervlakte').value);
+            const verdiepingen = parseInt(document.getElementById('verdiepingen').value);
+            const bouwniveau = document.getElementById('bouwniveau').value;
+            const duurzaamheid = document.getElementById('duurzaamheid').value;
+            const isolatie = document.getElementById('isolatie').value;
+
+            if (!oppervlakte || oppervlakte <= 0) {
+                alert('Voer een geldige oppervlakte in');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            await delay(1500);
+
+            const materials = generateMaterialsList(gebouwType, oppervlakte, verdiepingen, bouwniveau, duurzaamheid, isolatie);
+            const totals = calculateTotals(materials, oppervlakte);
+
+            calculationResults = {
+                success: true,
+                data: {
+                    project: { gebouwType, oppervlakte, verdiepingen, bouwniveau, duurzaamheid, isolatie },
+                    materials: materials,
+                    totals: totals
+                },
+                metadata: {
+                    agentId: AGENT_CONFIG.id,
+                    timestamp: new Date().toISOString()
+                }
+            };
+
+            displayResults(materials, totals, oppervlakte);
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function generateMaterialsList(gebouwType, oppervlakte, verdiepingen, bouwniveau, duurzaamheid, isolatie) {
+            const totalArea = oppervlakte * verdiepingen;
+            const wallArea = oppervlakte * 2.5 * verdiepingen * 4;
+            
+            const niveauMultiplier = {
+                'basis': 1.0,
+                'gemiddeld': 1.2,
+                'hoogwaardig': 1.5,
+                'luxe': 2.0
+            }[bouwniveau];
+
+            const materials = [
+                {
+                    name: 'Beton',
+                    category: 'Fundering',
+                    quantity: Math.round(oppervlakte * 0.3),
+                    unit: 'm³',
+                    unitPrice: 120,
+                    sustainability: 'yellow',
+                    co2: 0.12
+                },
+                {
+                    name: 'Metselwerk (stenen)',
+                    category: 'Gevel',
+                    quantity: Math.round(wallArea * 0.1),
+                    unit: 'm²',
+                    unitPrice: 65,
+                    sustainability: 'green',
+                    co2: 0.05
+                },
+                {
+                    name: isolatie === 'cellulose' ? 'Cellulose Isolatie' : 
+                          isolatie === 'pir' ? 'PIR Isolatie' :
+                          isolatie === 'eps' ? 'EPS Isolatie' : 'Minerale Wol',
+                    category: 'Isolatie',
+                    quantity: Math.round(totalArea * 1.5),
+                    unit: 'm²',
+                    unitPrice: isolatie === 'pir' ? 45 : isolatie === 'cellulose' ? 35 : 25,
+                    sustainability: isolatie === 'cellulose' ? 'green' : 'yellow',
+                    co2: isolatie === 'cellulose' ? 0.02 : 0.04
+                },
+                {
+                    name: 'Dakbedekking',
+                    category: 'Dak',
+                    quantity: Math.round(oppervlakte * 1.1),
+                    unit: 'm²',
+                    unitPrice: 55,
+                    sustainability: 'yellow',
+                    co2: 0.03
+                },
+                {
+                    name: 'Kozijnen & Deuren',
+                    category: 'Timmerwerk',
+                    quantity: Math.round(oppervlakte * 0.15),
+                    unit: 'stuks',
+                    unitPrice: 450,
+                    sustainability: 'green',
+                    co2: 0.08
+                },
+                {
+                    name: 'Vloerbedekking',
+                    category: 'Afwerking',
+                    quantity: Math.round(totalArea),
+                    unit: 'm²',
+                    unitPrice: 45 * niveauMultiplier,
+                    sustainability: 'yellow',
+                    co2: 0.02
+                },
+                {
+                    name: 'Gipsplaten',
+                    category: 'Afwerking',
+                    quantity: Math.round(totalArea * 2.5),
+                    unit: 'm²',
+                    unitPrice: 18,
+                    sustainability: 'yellow',
+                    co2: 0.01
+                },
+                {
+                    name: 'Sanitair',
+                    category: 'Installaties',
+                    quantity: Math.round(verdiepingen * 2),
+                    unit: 'sets',
+                    unitPrice: 1200 * niveauMultiplier,
+                    sustainability: 'green',
+                    co2: 0.05
+                },
+                {
+                    name: 'Elektrische Installatie',
+                    category: 'Installaties',
+                    quantity: Math.round(totalArea * 0.8),
+                    unit: 'm¹',
+                    unitPrice: 35,
+                    sustainability: 'yellow',
+                    co2: 0.02
+                },
+                {
+                    name: duurzaamheid === 'passiefhuis' ? 'Triple Glas HR+++' : 
+                          duurzaamheid === 'breeam' ? 'HR++ Glas' : 'HR+ Glas',
+                    category: 'Glas',
+                    quantity: Math.round(oppervlakte * 0.25),
+                    unit: 'm²',
+                    unitPrice: duurzaamheid === 'passiefhuis' ? 250 : duurzaamheid === 'breeam' ? 180 : 120,
+                    sustainability: duurzaamheid === 'passiefhuis' ? 'green' : 'yellow',
+                    co2: 0.04
+                }
+            ];
+
+            if (duurzaamheid === 'passiefhuis' || duurzaamheid === 'breeam') {
+                materials.push({
+                    name: 'Zonnepanelen',
+                    category: 'Duurzaam',
+                    quantity: Math.round(oppervlakte * 0.3),
+                    unit: 'm²',
+                    unitPrice: 350,
+                    sustainability: 'green',
+                    co2: -0.15
+                });
+            }
+
+            return materials;
+        }
+
+        function calculateTotals(materials, oppervlakte) {
+            const totalCost = materials.reduce((sum, m) => sum + (m.quantity * m.unitPrice), 0);
+            const totalWeight = materials.reduce((sum, m) => sum + (m.quantity * 10), 0);
+            const totalCO2 = materials.reduce((sum, m) => sum + (m.quantity * m.co2), 0);
+            
+            const greenCount = materials.filter(m => m.sustainability === 'green').length;
+            const sustainabilityScore = Math.round((greenCount / materials.length) * 10);
+
+            return {
+                totalCost,
+                costPerSqm: Math.round(totalCost / oppervlakte),
+                totalWeight,
+                trucksNeeded: Math.ceil(totalWeight / 25000),
+                totalCO2: totalCO2.toFixed(2),
+                sustainabilityScore,
+                deliveryTime: '3-6 weken',
+                storageSpace: Math.round(totalWeight / 500) + ' m²'
+            };
+        }
+
+        function displayResults(materials, totals, oppervlakte) {
+            document.getElementById('total-cost').textContent = '€ ' + totals.totalCost.toLocaleString('nl-NL');
+            document.getElementById('cost-per-sqm').textContent = '€ ' + totals.costPerSqm.toLocaleString('nl-NL');
+            document.getElementById('sustainability-score').textContent = totals.sustainabilityScore + '/10';
+            document.getElementById('co2-impact').textContent = totals.totalCO2 + ' ton CO₂';
+            document.getElementById('total-weight').textContent = totals.totalWeight.toLocaleString('nl-NL') + ' kg';
+            document.getElementById('trucks-needed').textContent = totals.trucksNeeded + ' stuks';
+            document.getElementById('delivery-time').textContent = totals.deliveryTime;
+            document.getElementById('storage-space').textContent = totals.storageSpace;
+
+            const materialList = document.getElementById('material-list');
+            materialList.innerHTML = materials.map(m => `
+                <li class="material-item">
+                    <div class="material-header">
+                        <span class="material-name">${m.name}</span>
+                        <span class="material-quantity">${m.quantity} ${m.unit}</span>
+                    </div>
+                    <div class="material-details">
+                        <div>Categorie: ${m.category}</div>
+                        <div>Prijs: € ${(m.quantity * m.unitPrice).toLocaleString('nl-NL')}</div>
+                        <div>CO₂: ${(m.quantity * m.co2).toFixed(2)} ton</div>
+                        <div>
+                            Duurzaamheid: 
+                            <span class="sustainability-badge badge-${m.sustainability}">
+                                ${m.sustainability === 'green' ? 'Goed' : m.sustainability === 'yellow' ? 'Gemiddeld' : 'Laag'}
+                            </span>
+                        </div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        function receiveFromAgent() {
+            const demoData = {
+                gebouwType: 'kantoor',
+                oppervlakte: 350,
+                verdiepingen: 3
+            };
+
+            document.getElementById('gebouwType').value = demoData.gebouwType;
+            document.getElementById('oppervlakte').value = demoData.oppervlakte;
+            document.getElementById('verdiepingen').value = demoData.verdiepingen;
+
+            alert('✅ Data ontvangen van andere agent (demo)');
+        }
+
+        function exportResults() {
+            if (!calculationResults) {
+                alert('Bereken eerst materialen');
+                return;
+            }
+
+            const dataStr = JSON.stringify(calculationResults, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `materialen_${Date.now()}.json`;
+            link.click();
+        }
+
+        function generatePDF() {
+            alert('PDF generatie zou hier geïmplementeerd worden met jsPDF');
+        }
+
+        function sendToNextAgent() {
+            if (!calculationResults) {
+                alert('Bereken eerst materialen');
+                return;
+            }
+
+            const dataToSend = {
+                sourceAgent: AGENT_CONFIG.id,
+                materials: calculationResults.data.materials,
+                totals: calculationResults.data.totals
+            };
+
+            localStorage.setItem('next-agent-input', JSON.stringify(dataToSend));
+            
+            const nextAgent = prompt('Naar welke agent? (bijv. kosten-agent.html)');
+            if (nextAgent) {
+                window.location.href = nextAgent;
+            }
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>

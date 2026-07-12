@@ -242,6 +242,174 @@
                 justify-content: center;
             }
         }
+
+        /* Getting Started Section */
+        .getting-started {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .getting-started h2 {
+            color: #667eea;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .getting-started .subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .required-data {
+            background: linear-gradient(135deg, #e7f3ff 0%, #f8f9fa 100%);
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .required-data h3 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .data-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .data-item {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .data-item h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .data-item ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .data-item li {
+            padding: 0.5rem 0;
+            color: #495057;
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+        }
+
+        .data-item li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .workflow-diagram {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .workflow-diagram h3 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .workflow-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .workflow-step {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 150px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .workflow-arrow {
+            font-size: 2rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .start-button {
+            display: block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 1.25rem 3rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 2rem auto 0;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .info-box-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .info-box-content h4 {
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box-content p {
+            color: #856404;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -267,27 +435,165 @@
             <p>Welkom bij het complete systeem voor bouw- en gebouwbeheer</p>
         </div>
 
+        <!-- Getting Started Sectie -->
+        <div class="getting-started">
+            <h2>🚀 Welke Gegevens Heb Je Nodig?</h2>
+            <p class="subtitle">Om alle agents optimaal te laten draaien, heb je de volgende basisgegevens nodig:</p>
+
+            <div class="required-data">
+                <h3>📋 Vereiste Basisgegevens</h3>
+                <div class="data-list">
+                    <div class="data-item">
+                        <h4>📍 Locatie Gegevens</h4>
+                        <ul>
+                            <li><strong>Postcode</strong> (bijv. 1234 AB)</li>
+                            <li><strong>Huisnummer</strong> (bijv. 45)</li>
+                            <li>Straatnaam (optioneel)</li>
+                            <li>Plaatsnaam (optioneel)</li>
+                        </ul>
+                    </div>
+
+                    <div class="data-item">
+                        <h4>🏢 Gebouw Informatie</h4>
+                        <ul>
+                            <li><strong>Gebouw Type</strong> (woning, kantoor, etc.)</li>
+                            <li><strong>Oppervlakte</strong> in m²</li>
+                            <li><strong>Aantal Verdiepingen</strong></li>
+                            <li>Bouwniveau (basis tot luxe)</li>
+                            <li>Duurzaamheidsniveau gewenst</li>
+                        </ul>
+                    </div>
+
+                    <div class="data-item">
+                        <h4>📏 Afmetingen</h4>
+                        <ul>
+                            <li>Breedte van het gebouw</li>
+                            <li>Lengte van het gebouw</li>
+                            <li>Verdiepingshoogte</li>
+                            <li>Specifieke ruimte afmetingen</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workflow-diagram">
+                <h3>🔄 Aanbevolen Workflow</h3>
+                <p style="text-align: center; color: #6c757d; margin-bottom: 2rem;">
+                    Volg deze volgorde voor een complete analyse van je bouwproject:
+                </p>
+                <div class="workflow-steps">
+                    <div class="workflow-step">
+                        📋<br>1. Gebouw<br>Formulier
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        📊<br>2. Open Data<br>Agent
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        📏<br>3. Meet<br>Agent
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        🧱<br>4. Materialen<br>Agent
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        🚒<br>5. Brandweer<br>Agent
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        🏢<br>6. Bouw<br>Systeem
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-icon">💡</div>
+                <div class="info-box-content">
+                    <h4>Tip: Start met het Gebouw Formulier</h4>
+                    <p>
+                        Begin bij het <strong>Gebouw Formulier Agent</strong> om alle basisgegevens in te voeren. 
+                        Deze data wordt automatisch doorgegeven aan de andere agents. Je kunt agents ook individueel 
+                        gebruiken als je specifieke informatie nodig hebt!
+                    </p>
+                </div>
+            </div>
+
+            <a href="gebouw-formulier.html" class="start-button">
+                🚀 Start met Gebouw Formulier
+            </a>
+        </div>
+
         <div class="main-content">
+            <h2 style="color: white; text-align: center; margin-bottom: 2rem; font-size: 2rem;">🤖 Agent Orchestration Platform</h2>
+            
+            <div class="page-grid">
+                <a href="agent-platform.html" class="page-card" style="border: 3px solid #ffc107; background: linear-gradient(135deg, #fff3cd 0%, #ffffff 100%);">
+                    <div class="icon">🤖</div>
+                    <h3 style="color: #856404;">Agent Platform Dashboard</h3>
+                    <p style="color: #856404;">Centraal platform om al je agents te beheren, monitoren en workflows uit te voeren.</p>
+                    <span class="btn" style="background: #ffc107; color: #212529;">Open Platform</span>
+                </a>
+
+                <a href="agent-workflow-builder.html" class="page-card" style="border: 3px solid #ffc107; background: linear-gradient(135deg, #fff3cd 0%, #ffffff 100%);">
+                    <div class="icon">🔄</div>
+                    <h3 style="color: #856404;">Workflow Builder</h3>
+                    <p style="color: #856404;">Visuele workflow builder om agents te koppelen en complexe workflows te maken.</p>
+                    <span class="btn" style="background: #ffc107; color: #212529;">Open Builder</span>
+                </a>
+            </div>
+
+            <h2 style="color: white; text-align: center; margin: 3rem 0 2rem; font-size: 2rem;">📋 Geregistreerde Agents</h2>
+            
             <div class="page-grid">
                 <a href="gebouw-formulier.html" class="page-card">
                     <div class="icon">📋</div>
-                    <h3>Gebouw Formulier</h3>
+                    <h3>Gebouw Formulier Agent</h3>
                     <p>Uitgebreid formulier voor het registreren van gebouwinformatie, constructiedetails en beveiligingsmaatregelen.</p>
-                    <span class="btn">Open Formulier</span>
+                    <span class="btn">Open Agent</span>
+                </a>
+
+                <a href="brandweer-watervoorziening.html" class="page-card">
+                    <div class="icon">🚒</div>
+                    <h3>Brandweer & Watervoorziening</h3>
+                    <p>Analyse van brandweerzorgen, opkomsttijden, materieel en watervoorziening op basis van locatie.</p>
+                    <span class="btn">Open Agent</span>
                 </a>
 
                 <a href="bouw-informatie-systeem.html" class="page-card">
                     <div class="icon">🏢</div>
                     <h3>Bouw Informatie Systeem</h3>
                     <p>Overzicht van alle bouwprojecten en gebouwinformatie in het systeem.</p>
-                    <span class="btn">Bekijk Systeem</span>
+                    <span class="btn">Open Agent</span>
                 </a>
 
-                <a href="index.html" class="page-card">
-                    <div class="icon">🏠</div>
-                    <h3>Startpagina</h3>
-                    <p>Terug naar het hoofdmenu van het Bouw Informatie Systeem.</p>
-                    <span class="btn">Startpagina</span>
+                <a href="agent-integratie-voorbeeld.html" class="page-card">
+                    <div class="icon">🔗</div>
+                    <h3>Agent Integratie Voorbeeld</h3>
+                    <p>Demonstratie en voorbeelden van hoe agents met elkaar kunnen communiceren.</p>
+                    <span class="btn">Bekijk Voorbeelden</span>
+                </a>
+
+                <a href="gebouwmaterialen-agent.html" class="page-card">
+                    <div class="icon">🧱</div>
+                    <h3>Gebouwmaterialen Agent</h3>
+                    <p>Bereken benodigde materialen, kosten en duurzaamheid voor bouwprojecten.</p>
+                    <span class="btn">Open Agent</span>
+                </a>
+
+                <a href="open-data-agent.html" class="page-card">
+                    <div class="icon">📊</div>
+                    <h3>Open Data Agent</h3>
+                    <p>Toegang tot Nederlandse overheids open data bronnen (BAG, BRO, PDOK, CBS).</p>
+                    <span class="btn">Open Agent</span>
+                </a>
+
+                <a href="meet-agent.html" class="page-card">
+                    <div class="icon">📏</div>
+                    <h3>Meet Agent</h3>
+                    <p>Bereken oppervlaktes, volumes, omtrekken en complexe gebouwmetingen.</p>
+                    <span class="btn">Open Agent</span>
                 </a>
             </div>
         </div>

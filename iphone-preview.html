@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone Preview - Bouw Informatie Systeem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .device-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .device-frame {
+            background: #000;
+            border-radius: 50px;
+            padding: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .notch {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 30px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 1000;
+        }
+
+        .screen {
+            background: white;
+            border-radius: 35px;
+            overflow: hidden;
+            height: 667px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Scrollbar styling */
+        .screen::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .screen::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .screen::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        /* Mobile optimized content */
+        .mobile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 1rem 1rem;
+            text-align: center;
+        }
+
+        .mobile-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .mobile-content {
+            padding: 1rem;
+        }
+
+        .mobile-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .mobile-section h2 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-section p {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-box {
+            background: linear-gradient(135deg, #e7f3ff 0%, #f8f9fa 100%);
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-box h3 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .data-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid #667eea;
+        }
+
+        .data-item h4 {
+            color: #2c3e50;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .data-item ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .data-item li {
+            font-size: 0.85rem;
+            color: #495057;
+            padding: 0.25rem 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .data-item li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .workflow-mobile {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .workflow-mobile h3 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .workflow-step-mobile {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .arrow-mobile {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.5rem;
+            margin: 0.25rem 0;
+        }
+
+        .tip-box-mobile {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tip-box-mobile h4 {
+            color: #856404;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tip-box-mobile p {
+            color: #856404;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .start-btn-mobile {
+            display: block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            text-align: center;
+            margin-top: 1rem;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .agent-cards-mobile {
+            margin-top: 1rem;
+        }
+
+        .agent-card-mobile {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .agent-card-mobile .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-card-mobile h3 {
+            color: #667eea;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-card-mobile p {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .agent-btn {
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .info-banner {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 1rem;
+            color: white;
+        }
+
+        .controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0 0.5rem;
+        }
+
+        .controls button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="device-container">
+        <h2 style="color: white; text-align: center; margin-bottom: 1rem;">📱 iPhone Preview</h2>
+        
+        <div class="device-frame">
+            <div class="notch"></div>
+            <div class="screen" id="screen">
+                <div class="mobile-header">
+                    <h1>🏗️ Bouw Informatie Systeem</h1>
+                    <p>Welkom bij het complete systeem</p>
+                </div>
+
+                <div class="mobile-content">
+                    <div class="mobile-section">
+                        <h2>🚀 Welke Gegevens Heb Je Nodig?</h2>
+                        <p>Om alle agents optimaal te laten draaien, heb je de volgende basisgegevens nodig:</p>
+
+                        <div class="data-box">
+                            <h3>📋 Vereiste Basisgegevens</h3>
+                            
+                            <div class="data-item">
+                                <h4>📍 Locatie Gegevens</h4>
+                                <ul>
+                                    <li><strong>Postcode</strong> (bijv. 1234 AB)</li>
+                                    <li><strong>Huisnummer</strong> (bijv. 45)</li>
+                                    <li>Straatnaam (optioneel)</li>
+                                    <li>Plaatsnaam (optioneel)</li>
+                                </ul>
+                            </div>
+
+                            <div class="data-item">
+                                <h4>🏢 Gebouw Informatie</h4>
+                                <ul>
+                                    <li><strong>Gebouw Type</strong></li>
+                                    <li><strong>Oppervlakte</strong> in m²</li>
+                                    <li><strong>Aantal Verdiepingen</strong></li>
+                                    <li>Bouwniveau (basis tot luxe)</li>
+                                    <li>Duurzaamheidsniveau</li>
+                                </ul>
+                            </div>
+
+                            <div class="data-item">
+                                <h4>📏 Afmetingen</h4>
+                                <ul>
+                                    <li>Breedte van het gebouw</li>
+                                    <li>Lengte van het gebouw</li>
+                                    <li>Verdiepingshoogte</li>
+                                    <li>Specifieke ruimte afmetingen</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="workflow-mobile">
+                            <h3>🔄 Aanbevolen Workflow</h3>
+                            <div class="workflow-step-mobile">📋 1. Gebouw Formulier</div>
+                            <div class="arrow-mobile">↓</div>
+                            <div class="workflow-step-mobile">📊 2. Open Data Agent</div>
+                            <div class="arrow-mobile">↓</div>
+                            <div class="workflow-step-mobile">📏 3. Meet Agent</div>
+                            <div class="arrow-mobile">↓</div>
+                            <div class="workflow-step-mobile">🧱 4. Materialen Agent</div>
+                            <div class="arrow-mobile">↓</div>
+                            <div class="workflow-step-mobile">🚒 5. Brandweer Agent</div>
+                            <div class="arrow-mobile">↓</div>
+                            <div class="workflow-step-mobile">🏢 6. Bouw Systeem</div>
+                        </div>
+
+                        <div class="tip-box-mobile">
+                            <h4>💡 Tip: Start met het Gebouw Formulier</h4>
+                            <p>Begin bij het Gebouw Formulier Agent om alle basisgegevens in te voeren. Deze data wordt automatisch doorgegeven aan de andere agents!</p>
+                        </div>
+
+                        <a href="#" class="start-btn-mobile">🚀 Start met Gebouw Formulier</a>
+                    </div>
+
+                    <div class="mobile-section">
+                        <h2>🤖 Agent Platform</h2>
+                        <div class="agent-cards-mobile">
+                            <div class="agent-card-mobile">
+                                <div class="icon">🤖</div>
+                                <h3>Agent Platform Dashboard</h3>
+                                <p>Centraal platform om al je agents te beheren en monitoren</p>
+                                <a href="#" class="agent-btn">Open Platform</a>
+                            </div>
+
+                            <div class="agent-card-mobile">
+                                <div class="icon">🔄</div>
+                                <h3>Workflow Builder</h3>
+                                <p>Visuele workflow builder om agents te koppelen</p>
+                                <a href="#" class="agent-btn">Open Builder</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mobile-section">
+                        <h2>📋 Geregistreerde Agents</h2>
+                        <div class="agent-cards-mobile">
+                            <div class="agent-card-mobile">
+                                <div class="icon">📋</div>
+                                <h3>Gebouw Formulier</h3>
+                                <p>Registreer gebouwinformatie en details</p>
+                                <a href="#" class="agent-btn">Open Agent</a>
+                            </div>
+
+                            <div class="agent-card-mobile">
+                                <div class="icon">🚒</div>
+                                <h3>Brandweer & Watervoorziening</h3>
+                                <p>Analyse van brandweerzorgen en watervoorziening</p>
+                                <a href="#" class="agent-btn">Open Agent</a>
+                            </div>
+
+                            <div class="agent-card-mobile">
+                                <div class="icon">🧱</div>
+                                <h3>Gebouwmaterialen</h3>
+                                <p>Bereken materialen, kosten en duurzaamheid</p>
+                                <a href="#" class="agent-btn">Open Agent</a>
+                            </div>
+
+                            <div class="agent-card-mobile">
+                                <div class="icon">📊</div>
+                                <h3>Open Data Agent</h3>
+                                <p>Toegang tot Nederlandse overheids data</p>
+                                <a href="#" class="agent-btn">Open Agent</a>
+                            </div>
+
+                            <div class="agent-card-mobile">
+                                <div class="icon">📏</div>
+                                <h3>Meet Agent</h3>
+                                <p>Bereken oppervlaktes, volumes en omtrekken</p>
+                                <a href="#" class="agent-btn">Open Agent</a>
+                            </div>
+
+                            <div class="agent-card-mobile">
+                                <div class="icon">🏢</div>
+                                <h3>Bouw Systeem</h3>
+                                <p>Overzicht van alle projecten</p>
+                                <a href="#" class="agent-btn">Open Agent</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-banner">
+                        © 2025 Bouw Informatie Systeem
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="scrollToTop()">⬆️ Scroll naar Boven</button>
+            <button onclick="scrollToBottom()">⬇️ Scroll naar Beneden</button>
+        </div>
+    </div>
+
+    <script>
+        function scrollToTop() {
+            document.getElementById('screen').scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollToBottom() {
+            const screen = document.getElementById('screen');
+            screen.scrollTo({
+                top: screen.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html>

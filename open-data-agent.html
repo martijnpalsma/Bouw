@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Data Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .sidebar h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .data-source {
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .data-source:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .data-source.active {
+            border-color: #667eea;
+            background: #e7f3ff;
+        }
+
+        .source-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .source-description {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .content-area {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-field {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .data-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .data-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span style="font-size: 2rem;">📊</span>
+                <span>Open Data Agent</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="agent-platform.html" class="nav-link">🎯 Dashboard</a></li>
+                <li><a href="agent-workflow-builder.html" class="nav-link">🔄 Workflows</a></li>
+                <li><a href="open-data-agent.html" class="nav-link active">📊 Open Data</a></li>
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>📊 Open Data Agent</h1>
+            <p>Toegang tot Nederlandse overheids open data bronnen voor bouwprojecten</p>
+        </div>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <h2>📚 Data Bronnen</h2>
+                
+                <div class="data-source active" onclick="selectSource('bag')">
+                    <div class="source-name">🏠 BAG (Kadaster)</div>
+                    <div class="source-description">Basisregistratie Adressen en Gebouwen</div>
+                </div>
+
+                <div class="data-source" onclick="selectSource('bro')">
+                    <div class="source-name">🌍 BRO</div>
+                    <div class="source-description">Basisregistratie Ondergrond</div>
+                </div>
+
+                <div class="data-source" onclick="selectSource('pdok')">
+                    <div class="source-name">🗺️ PDOK</div>
+                    <div class="source-description">Publieke Dienstverlening Op de Kaart</div>
+                </div>
+
+                <div class="data-source" onclick="selectSource('cbs')">
+                    <div class="source-name">📈 CBS</div>
+                    <div class="source-description">Centraal Bureau voor de Statistiek</div>
+                </div>
+
+                <div class="data-source" onclick="selectSource('omgevingswet')">
+                    <div class="source-name">⚖️ Omgevingswet</div>
+                    <div class="source-description">Vergunningen en Regelgeving</div>
+                </div>
+
+                <div class="data-source" onclick="selectSource('energie')">
+                    <div class="source-name">⚡ Energie Labels</div>
+                    <div class="source-description">RVO Energie Prestatie</div>
+                </div>
+            </aside>
+
+            <main class="content-area">
+                <div class="input-section">
+                    <h2 style="color: #667eea; margin-bottom: 1.5rem;">🔍 Data Opvragen</h2>
+                    
+                    <div class="alert alert-info">
+                        <strong>ℹ️ Info:</strong> Deze agent haalt data op uit open data bronnen. Voer een postcode in om te beginnen.
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label for="postcode">Postcode</label>
+                            <input type="text" id="postcode" placeholder="1234 AB" value="1012 JS">
+                        </div>
+                        <div class="input-field">
+                            <label for="huisnummer">Huisnummer (optioneel)</label>
+                            <input type="text" id="huisnummer" placeholder="45">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label for="data-type">Data Type</label>
+                            <select id="data-type">
+                                <option value="all">Alle Data</option>
+                                <option value="building">Gebouw Informatie</option>
+                                <option value="permits">Vergunningen</option>
+                                <option value="energy">Energie Labels</option>
+                                <option value="soil">Bodem Data</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="fetchOpenData()">🚀 Data Ophalen</button>
+                    <button class="btn btn-secondary" onclick="receiveFromAgent()" style="margin-left: 1rem;">📥 Ontvang van Agent</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Open data wordt opgehaald...</p>
+                </div>
+
+                <div class="results-section" id="results">
+                    <div id="results-container">
+                        <!-- Dynamisch gevuld -->
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button class="btn" onclick="exportResults()">📤 Exporteer JSON</button>
+                        <button class="btn btn-secondary" onclick="sendToNextAgent()">➡️ Naar Volgende Agent</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const AGENT_CONFIG = {
+            id: 'open-data-agent',
+            name: 'Open Data Agent',
+            version: '1.0.0',
+            type: 'integration'
+        };
+
+        let currentSource = 'bag';
+        let fetchedData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAgentCommunication();
+        });
+
+        function setupAgentCommunication() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postcode = urlParams.get('postcode');
+            
+            if (postcode) {
+                document.getElementById('postcode').value = postcode;
+                const huisnummer = urlParams.get('huisnummer');
+                if (huisnummer) document.getElementById('huisnummer').value = huisnummer;
+                fetchOpenData();
+            }
+
+            const storedData = localStorage.getItem('open-data-input');
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    document.getElementById('postcode').value = data.postcode || '';
+                    document.getElementById('huisnummer').value = data.huisnummer || '';
+                    localStorage.removeItem('open-data-input');
+                    fetchOpenData();
+                } catch (e) {
+                    console.error('Error:', e);
+                }
+            }
+
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'AGENT_DATA' && event.data.targetAgent === AGENT_CONFIG.id) {
+                    const data = event.data.payload;
+                    if (data.postcode) document.getElementById('postcode').value = data.postcode;
+                    if (data.huisnummer) document.getElementById('huisnummer').value = data.huisnummer;
+                    fetchOpenData();
+                }
+            });
+        }
+
+        function selectSource(source) {
+            currentSource = source;
+            document.querySelectorAll('.data-source').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.target.closest('.data-source').classList.add('active');
+        }
+
+        async function fetchOpenData() {
+            const postcode = document.getElementById('postcode').value;
+            const huisnummer = document.getElementById('huisnummer').value;
+            const dataType = document.getElementById('data-type').value;
+
+            if (!postcode) {
+                alert('Voer een postcode in');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            await delay(2000);
+
+            // Simuleer data ophalen (in productie: echte API calls)
+            fetchedData = {
+                success: true,
+                source: currentSource,
+                data: generateMockData(postcode, huisnummer, currentSource),
+                metadata: {
+                    agentId: AGENT_CONFIG.id,
+                    timestamp: new Date().toISOString(),
+                    postcode: postcode,
+                    huisnummer: huisnummer
+                }
+            };
+
+            displayResults(fetchedData);
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function generateMockData(postcode, huisnummer, source) {
+            const mockData = {
+                bag: {
+                    title: '🏠 BAG - Gebouw Informatie',
+                    data: {
+                        adres: `Damstraat ${huisnummer || '45'}, ${postcode}`,
+                        bouwjaar: 1985,
+                        oppervlakte: 245,
+                        gebruiksdoel: 'Woonfunctie',
+                        status: 'Pand in gebruik',
+                        monumentStatus: 'Geen monument',
+                        energieLabel: 'C',
+                        laatstGewijzigd: '2024-03-15'
+                    },
+                    tables: [
+                        {
+                            title: 'Verblijfsobjecten',
+                            headers: ['Type', 'Oppervlakte', 'Status'],
+                            rows: [
+                                ['Woning', '245 m²', 'In gebruik'],
+                                ['Berging', '15 m²', 'In gebruik']
+                            ]
+                        }
+                    ]
+                },
+                bro: {
+                    title: '🌍 BRO - Bodem Informatie',
+                    data: {
+                        bodemtype: 'Zandgrond',
+                        grondwaterstand: '1.5 m NAP',
+                        draagkracht: 'Goed',
+                        verontreiniging: 'Geen aangetroffen',
+                        funderingsadvies: 'Paalfundering aanbevolen',
+                        archeologisch: 'Geen verwachting'
+                    },
+                    tables: [
+                        {
+                            title: 'Bodemlagen',
+                            headers: ['Diepte', 'Type', 'Kwaliteit'],
+                            rows: [
+                                ['0-2m', 'Zand', 'Schoon'],
+                                ['2-5m', 'Klei', 'Schoon'],
+                                ['5-10m', 'Veen', 'Schoon']
+                            ]
+                        }
+                    ]
+                },
+                pdok: {
+                    title: '🗺️ PDOK - Kaart Data',
+                    data: {
+                        gemeente: 'Amsterdam',
+                        wijk: 'Centrum',
+                        buurt: 'Burgwallen-Oude Zijde',
+                        coordinaten: '52.3702° N, 4.8952° E',
+                        bestemming: 'Woongebied',
+                        beschermdzicht: 'Ja',
+                        hoogteNAP: '0.8 m'
+                    },
+                    tables: [
+                        {
+                            title: 'Nabijgelegen Voorzieningen',
+                            headers: ['Type', 'Afstand', 'Naam'],
+                            rows: [
+                                ['School', '250m', 'De Nieuwe School'],
+                                ['Ziekenhuis', '1.2km', 'AMC'],
+                                ['Park', '400m', 'Waterlooplein']
+                            ]
+                        }
+                    ]
+                },
+                cbs: {
+                    title: '📈 CBS - Statistieken',
+                    data: {
+                        inwoners: '872.680 (gemeente)',
+                        gemWaarde: '€ 485.000',
+                        bevolkingsdichtheid: '5.135 per km²',
+                        gemHuishoudensgrootte: '2.1',
+                        koopwoningen: '28%',
+                        huurwoningen: '72%'
+                    },
+                    tables: [
+                        {
+                            title: 'Buurt Statistieken',
+                            headers: ['Indicator', 'Waarde', 'Trend'],
+                            rows: [
+                                ['WOZ Waarde', '€ 485.000', '↑ +4.2%'],
+                                ['Leegstand', '2.1%', '→ Stabiel'],
+                                ['Nieuwbouw', '34 per jaar', '↑ +12%']
+                            ]
+                        }
+                    ]
+                },
+                omgevingswet: {
+                    title: '⚖️ Omgevingswet Data',
+                    data: {
+                        bestemmingsplan: 'Centrum 2023',
+                        bouwvergunning: 'Vergunningsplichtig',
+                        monumentenstatus: 'Geen',
+                        welstand: 'Welstandsvrij',
+                        parkeren: '1 parkeerplaats verplicht',
+                        geluidszone: 'Geen beperkingen'
+                    },
+                    tables: [
+                        {
+                            title: 'Recente Vergunningen',
+                            headers: ['Type', 'Datum', 'Status'],
+                            rows: [
+                                ['Dakopbouw', '2024-01-15', 'Verleend'],
+                                ['Kozijnvervanging', '2023-11-20', 'Verleend'],
+                                ['Zonnepanelen', '2023-08-10', 'Verleend']
+                            ]
+                        }
+                    ]
+                },
+                energie: {
+                    title: '⚡ Energie Prestatie',
+                    data: {
+                        energieLabel: 'C',
+                        geldigTot: '2028-12-31',
+                        energieIndex: '1.45',
+                        primairEnergie: '265 kWh/m²',
+                        advies: 'Isolatie verbeteren',
+                        potentieelLabel: 'A'
+                    },
+                    tables: [
+                        {
+                            title: 'Energie Maatregelen',
+                            headers: ['Maatregel', 'Besparing', 'Kosten'],
+                            rows: [
+                                ['Dakisolatie', '15%', '€ 3.500'],
+                                ['HR++ Glas', '12%', '€ 8.000'],
+                                ['Zonnepanelen', '25%', '€ 6.500']
+                            ]
+                        }
+                    ]
+                }
+            };
+
+            return mockData[source] || mockData.bag;
+        }
+
+        function displayResults(data) {
+            const container = document.getElementById('results-container');
+            const sourceData = data.data;
+
+            let html = `
+                <div class="alert alert-success">
+                    <strong>✅ Data succesvol opgehaald</strong> van ${getSourceName(data.source)}
+                </div>
+
+                <div class="data-card">
+                    <h3>${sourceData.title}</h3>
+                    
+                    <div class="info-grid">
+                        ${Object.entries(sourceData.data).map(([key, value]) => `
+                            <div class="info-item">
+                                <div class="info-label">${formatLabel(key)}</div>
+                                <div class="info-value">${value}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            if (sourceData.tables) {
+                sourceData.tables.forEach(table => {
+                    html += `
+                        <div class="data-card">
+                            <h3>${table.title}</h3>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        ${table.headers.map(h => `<th>${h}</th>`).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${table.rows.map(row => `
+                                        <tr>
+                                            ${row.map(cell => `<td>${cell}</td>`).join('')}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        function getSourceName(source) {
+            const names = {
+                bag: 'BAG (Kadaster)',
+                bro: 'BRO (Bodem)',
+                pdok: 'PDOK (Kaart)',
+                cbs: 'CBS (Statistiek)',
+                omgevingswet: 'Omgevingswet',
+                energie: 'RVO (Energie)'
+            };
+            return names[source] || source;
+        }
+
+        function formatLabel(key) {
+            const labels = {
+                adres: 'Adres',
+                bouwjaar: 'Bouwjaar',
+                oppervlakte: 'Oppervlakte',
+                gebruiksdoel: 'Gebruiksdoel',
+                status: 'Status',
+                monumentStatus: 'Monument',
+                energieLabel: 'Energie Label',
+                laatstGewijzigd: 'Laatst Gewijzigd',
+                bodemtype: 'Bodemtype',
+                grondwaterstand: 'Grondwater',
+                draagkracht: 'Draagkracht',
+                verontreiniging: 'Verontreiniging',
+                funderingsadvies: 'Fundering',
+                archeologisch: 'Archeologie',
+                gemeente: 'Gemeente',
+                wijk: 'Wijk',
+                buurt: 'Buurt',
+                coordinaten: 'Coördinaten',
+                bestemming: 'Bestemming',
+                beschermdzicht: 'Beschermd Zicht',
+                hoogteNAP: 'Hoogte NAP',
+                inwoners: 'Inwoners',
+                gemWaarde: 'Gem. WOZ Waarde',
+                bevolkingsdichtheid: 'Dichtheid',
+                gemHuishoudensgrootte: 'Huishoudensgrootte',
+                koopwoningen: 'Koopwoningen',
+                huurwoningen: 'Huurwoningen',
+                bestemmingsplan: 'Bestemmingsplan',
+                bouwvergunning: 'Vergunning',
+                welstand: 'Welstand',
+                parkeren: 'Parkeren',
+                geluidszone: 'Geluid',
+                energieIndex: 'Energie Index',
+                primairEnergie: 'Primair Energie',
+                advies: 'Advies',
+                potentieelLabel: 'Potentieel',
+                geldigTot: 'Geldig Tot'
+            };
+            return labels[key] || key;
+        }
+
+        function receiveFromAgent() {
+            const demoData = {
+                postcode: '1012 JS',
+                huisnummer: '45'
+            };
+
+            document.getElementById('postcode').value = demoData.postcode;
+            document.getElementById('huisnummer').value = demoData.huisnummer;
+
+            alert('✅ Data ontvangen van andere agent (demo)');
+        }
+
+        function exportResults() {
+            if (!fetchedData) {
+                alert('Haal eerst data op');
+                return;
+            }
+
+            const dataStr = JSON.stringify(fetchedData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `open_data_${Date.now()}.json`;
+            link.click();
+        }
+
+        function sendToNextAgent() {
+            if (!fetchedData) {
+                alert('Haal eerst data op');
+                return;
+            }
+
+            localStorage.setItem('next-agent-input', JSON.stringify(fetchedData.data));
+            
+            const nextAgent = prompt('Naar welke agent? (bijv. bouw-informatie-systeem.html)');
+            if (nextAgent) {
+                window.location.href = nextAgent;
+            }
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>

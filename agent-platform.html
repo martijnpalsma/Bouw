@@ -530,14 +530,14 @@
             <div class="stat-card">
                 <div class="stat-icon">🤖</div>
                 <div class="stat-info">
-                    <h3 id="total-agents">3</h3>
+                    <h3 id="total-agents">6</h3>
                     <p>Geregistreerde Agents</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
                 <div class="stat-info">
-                    <h3 id="active-agents">2</h3>
+                    <h3 id="active-agents">5</h3>
                     <p>Actieve Agents</p>
                 </div>
             </div>
@@ -704,6 +704,39 @@
                 status: 'idle',
                 inputs: ['gebouwData', 'brandweerData'],
                 outputs: ['rapport', 'pdf']
+            },
+            {
+                id: 'gebouwmaterialen-agent',
+                name: 'Gebouwmaterialen Agent',
+                icon: '🧱',
+                type: 'analysis',
+                description: 'Berekent benodigde materialen, kosten en duurzaamheid voor bouwprojecten',
+                url: 'gebouwmaterialen-agent.html',
+                status: 'active',
+                inputs: ['gebouwType', 'oppervlakte', 'verdiepingen'],
+                outputs: ['materials', 'totalCost', 'sustainabilityScore']
+            },
+            {
+                id: 'open-data-agent',
+                name: 'Open Data Agent',
+                icon: '📊',
+                type: 'integration',
+                description: 'Haalt data op uit Nederlandse overheids open data bronnen (BAG, BRO, PDOK, CBS)',
+                url: 'open-data-agent.html',
+                status: 'active',
+                inputs: ['postcode', 'huisnummer'],
+                outputs: ['gebouwInfo', 'bodemData', 'statistieken']
+            },
+            {
+                id: 'meet-agent',
+                name: 'Meet Agent',
+                icon: '📏',
+                type: 'processing',
+                description: 'Berekent oppervlaktes, volumes, omtrekken en complexe gebouwmetingen',
+                url: 'meet-agent.html',
+                status: 'active',
+                inputs: ['afmetingen', 'vorm'],
+                outputs: ['oppervlakte', 'volume', 'omtrek', 'materiaalSchatting']
             }
         ];
 

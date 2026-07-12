@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Template - Pas Aan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-section h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #6c757d;
+            text-align: right;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span style="font-size: 2rem;">🤖</span>
+                <span>Mijn Agent Naam</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="agent-platform.html" class="nav-link">🎯 Dashboard</a></li>
+                <li><a href="agent-workflow-builder.html" class="nav-link">🔄 Workflows</a></li>
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🤖 Mijn Agent Naam</h1>
+            <p>Korte beschrijving van wat deze agent doet</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Input Sectie -->
+            <div class="input-section">
+                <h2>📥 Input Parameters</h2>
+                
+                <div class="alert alert-info">
+                    <strong>ℹ️ Let op:</strong> Deze agent kan data ontvangen van andere agents of handmatig worden ingevoerd.
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="param1">Parameter 1</label>
+                        <input type="text" id="param1" placeholder="Voer parameter 1 in">
+                    </div>
+                    <div class="input-field">
+                        <label for="param2">Parameter 2</label>
+                        <input type="text" id="param2" placeholder="Voer parameter 2 in">
+                    </div>
+                </div>
+
+                <button class="btn" onclick="processData()">🚀 Verwerk Data</button>
+                <button class="btn btn-secondary" onclick="receiveFromAgent()" style="margin-left: 1rem;">📥 Ontvang van Agent</button>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Bezig met verwerken...</p>
+            </div>
+
+            <!-- Results Sectie -->
+            <div class="results-section" id="results">
+                <h2 style="color: #667eea; margin-bottom: 1.5rem;">📊 Resultaten</h2>
+
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>📈 Result 1</h3>
+                        <div class="info-row">
+                            <span class="info-label">Metric 1</span>
+                            <span class="info-value" id="metric1">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Metric 2</span>
+                            <span class="info-value" id="metric2">-</span>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>📊 Result 2</h3>
+                        <div class="info-row">
+                            <span class="info-label">Metric 3</span>
+                            <span class="info-value" id="metric3">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Metric 4</span>
+                            <span class="info-value" id="metric4">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn" onclick="exportResults()">📤 Exporteer</button>
+                    <button class="btn btn-secondary" onclick="sendToNextAgent()">➡️ Naar Volgende Agent</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================================
+        // AGENT CONFIGURATION
+        // ===================================
+        const AGENT_CONFIG = {
+            id: 'my-agent-id',
+            name: 'Mijn Agent',
+            version: '1.0.0',
+            type: 'analysis'  // input, processing, analysis, output, integration
+        };
+
+        // ===================================
+        // STATE MANAGEMENT
+        // ===================================
+        let agentState = {
+            inputData: null,
+            resultData: null,
+            isProcessing: false
+        };
+
+        // ===================================
+        // INITIALIZATION
+        // ===================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log(`🚀 ${AGENT_CONFIG.name} v${AGENT_CONFIG.version} geïnitialiseerd`);
+            setupAgentCommunication();
+        });
+
+        // ===================================
+        // AGENT COMMUNICATION
+        // ===================================
+        function setupAgentCommunication() {
+            // Methode 1: URL Parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const param1 = urlParams.get('param1');
+            const param2 = urlParams.get('param2');
+            
+            if (param1 && param2) {
+                document.getElementById('param1').value = param1;
+                document.getElementById('param2').value = param2;
+                processData();
+            }
+
+            // Methode 2: LocalStorage
+            const storedData = localStorage.getItem(`${AGENT_CONFIG.id}-input`);
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    document.getElementById('param1').value = data.param1 || '';
+                    document.getElementById('param2').value = data.param2 || '';
+                    localStorage.removeItem(`${AGENT_CONFIG.id}-input`);
+                    processData();
+                } catch (e) {
+                    console.error('Error parsing stored data:', e);
+                }
+            }
+
+            // Methode 3: PostMessage
+            window.addEventListener('message', (event) => {
+                // BELANGRIJK: Valideer origin in productie!
+                if (event.data.type === 'AGENT_DATA' && event.data.targetAgent === AGENT_CONFIG.id) {
+                    const data = event.data.payload;
+                    document.getElementById('param1').value = data.param1 || '';
+                    document.getElementById('param2').value = data.param2 || '';
+                    processData();
+                }
+            });
+        }
+
+        // ===================================
+        // CORE PROCESSING LOGIC
+        // ===================================
+        async function processData() {
+            const param1 = document.getElementById('param1').value;
+            const param2 = document.getElementById('param2').value;
+
+            // Validatie
+            if (!validateInput(param1, param2)) {
+                alert('❌ Ongeldige input parameters');
+                return;
+            }
+
+            // UI Update
+            showLoading();
+            agentState.isProcessing = true;
+
+            try {
+                // Start performance tracking
+                const startTime = performance.now();
+
+                // Simuleer verwerking (vervang met je eigen logica)
+                await delay(1500);
+
+                // Bereken resultaten (pas aan voor jouw use case)
+                const results = await performAnalysis(param1, param2);
+
+                // Performance tracking
+                const executionTime = performance.now() - startTime;
+                console.log(`⏱️ Verwerking voltooid in ${executionTime.toFixed(2)}ms`);
+
+                // Bewaar resultaten
+                agentState.resultData = {
+                    success: true,
+                    data: results,
+                    metadata: {
+                        agentId: AGENT_CONFIG.id,
+                        version: AGENT_CONFIG.version,
+                        timestamp: new Date().toISOString(),
+                        executionTime: executionTime
+                    }
+                };
+
+                // Update UI
+                displayResults(results);
+
+            } catch (error) {
+                console.error('❌ Fout bij verwerken:', error);
+                agentState.resultData = {
+                    success: false,
+                    error: error.message
+                };
+                alert('Er is een fout opgetreden bij het verwerken van de data');
+            } finally {
+                hideLoading();
+                agentState.isProcessing = false;
+            }
+        }
+
+        // ===================================
+        // BUSINESS LOGIC (PAS AAN)
+        // ===================================
+        async function performAnalysis(param1, param2) {
+            // PAS DEZE FUNCTIE AAN VOOR JOUW USE CASE
+            
+            console.log('🔍 Analyseren...', { param1, param2 });
+
+            // Voorbeeld: simuleer complexe berekeningen
+            const result = {
+                metric1: Math.random() * 100,
+                metric2: Math.random() * 1000,
+                metric3: param1.length * 10,
+                metric4: param2.length * 20,
+                analysis: `Analyse van ${param1} en ${param2}`,
+                recommendations: generateRecommendations(param1, param2)
+            };
+
+            return result;
+        }
+
+        function generateRecommendations(param1, param2) {
+            // Voorbeeld aanbevelingen generatie
+            return [
+                'Aanbeveling 1 gebaseerd op data',
+                'Aanbeveling 2 voor optimalisatie',
+                'Aanbeveling 3 voor verbetering'
+            ];
+        }
+
+        // ===================================
+        // VALIDATION
+        // ===================================
+        function validateInput(param1, param2) {
+            // PAS VALIDATIE AAN VOOR JOUW USE CASE
+            if (!param1 || param1.trim() === '') {
+                console.error('Parameter 1 is verplicht');
+                return false;
+            }
+            
+            if (!param2 || param2.trim() === '') {
+                console.error('Parameter 2 is verplicht');
+                return false;
+            }
+
+            return true;
+        }
+
+        // ===================================
+        // UI UPDATES
+        // ===================================
+        function displayResults(results) {
+            // Update result fields
+            document.getElementById('metric1').textContent = results.metric1.toFixed(2);
+            document.getElementById('metric2').textContent = results.metric2.toFixed(2);
+            document.getElementById('metric3').textContent = results.metric3;
+            document.getElementById('metric4').textContent = results.metric4;
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // ===================================
+        // DATA EXPORT
+        // ===================================
+        function exportResults() {
+            if (!agentState.resultData) {
+                alert('Geen resultaten om te exporteren');
+                return;
+            }
+
+            const dataStr = JSON.stringify(agentState.resultData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${AGENT_CONFIG.id}_results_${Date.now()}.json`;
+            link.click();
+
+            console.log('✅ Resultaten geëxporteerd');
+        }
+
+        // ===================================
+        // AGENT-TO-AGENT COMMUNICATION
+        // ===================================
+        function sendToNextAgent() {
+            if (!agentState.resultData || !agentState.resultData.success) {
+                alert('Geen resultaten om te verzenden');
+                return;
+            }
+
+            // Definieer welke data naar de volgende agent gaat
+            const dataToSend = {
+                sourceAgent: AGENT_CONFIG.id,
+                timestamp: new Date().toISOString(),
+                // Selecteer relevante data
+                param1: agentState.resultData.data.metric1,
+                param2: agentState.resultData.data.metric2
+            };
+
+            // Kies verzend methode (pas aan naar behoefte)
+            // Methode 1: LocalStorage
+            localStorage.setItem('next-agent-input', JSON.stringify(dataToSend));
+            
+            // Vraag gebruiker naar welke agent
+            const nextAgent = prompt('Naar welke agent wil je deze data sturen?\n\n' +
+                                   'Voorbeelden:\n' +
+                                   '- brandweer-watervoorziening.html\n' +
+                                   '- bouw-informatie-systeem.html\n' +
+                                   '- andere-agent.html');
+            
+            if (nextAgent) {
+                window.location.href = nextAgent;
+            }
+        }
+
+        function receiveFromAgent() {
+            // Demo: simuleer data ontvangst
+            const demoData = {
+                param1: 'Demo waarde 1',
+                param2: 'Demo waarde 2'
+            };
+
+            document.getElementById('param1').value = demoData.param1;
+            document.getElementById('param2').value = demoData.param2;
+
+            alert('✅ Data ontvangen van andere agent (demo)');
+        }
+
+        // ===================================
+        // UTILITY FUNCTIONS
+        // ===================================
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function logAgentAction(action, data = null) {
+            console.log(`[${AGENT_CONFIG.id}] ${action}`, data || '');
+        }
+
+        // ===================================
+        // ERROR HANDLING
+        // ===================================
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            agentState.isProcessing = false;
+            hideLoading();
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            agentState.isProcessing = false;
+            hideLoading();
+        });
+    </script>
+</body>
+</html>

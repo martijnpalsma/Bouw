@@ -85,7 +85,14 @@ targetWindow.postMessage({
 
 ```
 /
-├── index.html                          # Hoofdpagina
+├── RiskWalk/                           # Native iOS inspectie-app (SwiftUI)
+│   ├── RiskWalk.xcodeproj
+│   ├── RiskWalk/                       # App sources + privacy resources
+│   ├── RiskWalkTests/
+│   ├── README.md
+│   └── PRIVACY_SECURITY.md
+│
+├── index.html                          # Hoofdpagina (web agents)
 ├── agent-platform.html                 # Agent dashboard
 ├── agent-workflow-builder.html         # Workflow builder
 ├── agent-template.html                 # Agent template
@@ -99,6 +106,10 @@ targetWindow.postMessage({
 ├── AGENT_DEVELOPER_GUIDE.md           # Developer guide
 └── API_INTEGRATION.md                  # API integratie guide
 ```
+
+### iOS-app (RiskWalk)
+
+Open `RiskWalk/RiskWalk.xcodeproj` in Xcode. Privacy- en securitymaatregelen staan in `RiskWalk/PRIVACY_SECURITY.md`.
 
 ## 🎯 Quick Start
 

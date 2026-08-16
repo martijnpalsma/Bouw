@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>nl</string>
+	<key>CFBundleDisplayName</key>
+	<string>RiskWalk</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>RiskWalk gebruikt de camera om inspectiefoto's te maken van gebouwen, installaties en constateringen. Foto's blijven lokaal op dit apparaat.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>RiskWalk gebruikt de microfoon om dicteernotities tijdens de inspectie om te zetten naar tekst. Opnames worden niet naar externe servers gestuurd.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>RiskWalk gebruikt spraakherkenning om dicteernotities om te zetten naar tekst. Herkenning gebeurt via Apple-voorzieningen volgens uw systeeminstellingen.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Alleen wanneer u dat expliciet kiest, kan RiskWalk een inspectiefoto ook in uw fotobibliotheek bewaren.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>RiskWalk kan bestaande foto's selecteren om aan een inspectie te koppelen. Foto's worden lokaal in het inspectiedossier bewaard.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>RiskWalk kan Face ID gebruiken om toegang tot inspectiedossiers te beschermen.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>

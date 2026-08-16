@@ -111,10 +111,54 @@ final class SecureStoreRoundTripTests: XCTestCase {
         )
 
         try SecureStore.save(snapshot)
-        let loaded = try SecureStore.load()
+        let loaded = try SecureStore.load(id: snapshot.id)
         XCTAssertEqual(loaded?.id, snapshot.id)
         XCTAssertEqual(loaded?.buildings.first?.displayCode, "G01")
         XCTAssertEqual(loaded?.inspectGoods, false)
         XCTAssertEqual(loaded?.saveAlsoToPhotoLibrary, false)
+
+        let index = try SecureStore.loadIndex()
+        XCTAssertTrue(index.contains(where: { $0.id == snapshot.id }))
+        XCTAssertEqual(DossierProgress.place(from: "Straat 1, Amsterdam"), "Amsterdam")
+    }
+}
+
+final class DashboardProgressTests: XCTestCase {
+    func testProgressIncreasesWhenStatusesAreSet() {
+        var snapshot = InspectionSnapshot(
+            id: UUID(),
+            companyName: "Demo",
+            address: "Weg 2, Utrecht",
+            contactPerson: "",
+            inspectionDate: Date(),
+            status: .inProgress,
+            buildings: [Building(displayCode: "G01", name: "Hal")],
+            selectedBusinessTypes: [],
+            customBusinessType: "",
+            inspectBuildings: true,
+            inspectInventory: true,
+            inspectGoods: true,
+            inspectDamage: true,
+            topics: [
+                InspectionTopic(name: "Brand", category: .general),
+                InspectionTopic(name: "Water", category: .general)
+            ],
+            answers: [:],
+            photos: [],
+            openIssues: [],
+            recommendations: [],
+            nextBuildingSequence: 1,
+            saveAlsoToPhotoLibrary: false
+        )
+
+        let emptyProgress = DossierProgress.calculate(from: snapshot)
+        XCTAssertEqual(emptyProgress, 0, accuracy: 0.001)
+
+        let buildingId = snapshot.buildings[0].id.uuidString
+        snapshot.topics[0].buildingStatuses[buildingId] = .ok
+        snapshot.topics[1].buildingStatuses[buildingId] = .attention
+        let filled = DossierProgress.calculate(from: snapshot)
+        XCTAssertGreaterThan(filled, emptyProgress)
+        XCTAssertEqual(filled, 1.0, accuracy: 0.001)
     }
 }

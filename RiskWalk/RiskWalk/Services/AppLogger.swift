@@ -16,6 +16,10 @@ enum AppLogger {
         dossier.info("Opened dossier id=\(redacted(id), privacy: .public)")
     }
 
+    static func dossierDeleted(id: String) {
+        dossier.info("Deleted dossier id=\(redacted(id), privacy: .public)")
+    }
+
     static func dossierSaved(id: String, buildingCount: Int, photoCount: Int) {
         persistence.info("Saved dossier id=\(redacted(id), privacy: .public) buildings=\(buildingCount, privacy: .public) photos=\(photoCount, privacy: .public)")
     }

@@ -225,4 +225,80 @@ struct InspectionSnapshot: Codable {
     var recommendations: [String]
     var nextBuildingSequence: Int
     var saveAlsoToPhotoLibrary: Bool
+    var isArchived: Bool
+    var updatedAt: Date
+
+    init(
+        id: UUID,
+        companyName: String,
+        address: String,
+        contactPerson: String,
+        inspectionDate: Date,
+        status: InspectionLifecycleStatus,
+        buildings: [Building],
+        selectedBusinessTypes: [String],
+        customBusinessType: String,
+        inspectBuildings: Bool,
+        inspectInventory: Bool,
+        inspectGoods: Bool,
+        inspectDamage: Bool,
+        topics: [InspectionTopic],
+        answers: [String: Answer],
+        photos: [InspectionPhoto],
+        openIssues: [OpenIssue],
+        recommendations: [String],
+        nextBuildingSequence: Int,
+        saveAlsoToPhotoLibrary: Bool,
+        isArchived: Bool = false,
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.companyName = companyName
+        self.address = address
+        self.contactPerson = contactPerson
+        self.inspectionDate = inspectionDate
+        self.status = status
+        self.buildings = buildings
+        self.selectedBusinessTypes = selectedBusinessTypes
+        self.customBusinessType = customBusinessType
+        self.inspectBuildings = inspectBuildings
+        self.inspectInventory = inspectInventory
+        self.inspectGoods = inspectGoods
+        self.inspectDamage = inspectDamage
+        self.topics = topics
+        self.answers = answers
+        self.photos = photos
+        self.openIssues = openIssues
+        self.recommendations = recommendations
+        self.nextBuildingSequence = nextBuildingSequence
+        self.saveAlsoToPhotoLibrary = saveAlsoToPhotoLibrary
+        self.isArchived = isArchived
+        self.updatedAt = updatedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        companyName = try container.decode(String.self, forKey: .companyName)
+        address = try container.decode(String.self, forKey: .address)
+        contactPerson = try container.decode(String.self, forKey: .contactPerson)
+        inspectionDate = try container.decode(Date.self, forKey: .inspectionDate)
+        status = try container.decode(InspectionLifecycleStatus.self, forKey: .status)
+        buildings = try container.decode([Building].self, forKey: .buildings)
+        selectedBusinessTypes = try container.decode([String].self, forKey: .selectedBusinessTypes)
+        customBusinessType = try container.decode(String.self, forKey: .customBusinessType)
+        inspectBuildings = try container.decode(Bool.self, forKey: .inspectBuildings)
+        inspectInventory = try container.decode(Bool.self, forKey: .inspectInventory)
+        inspectGoods = try container.decode(Bool.self, forKey: .inspectGoods)
+        inspectDamage = try container.decode(Bool.self, forKey: .inspectDamage)
+        topics = try container.decode([InspectionTopic].self, forKey: .topics)
+        answers = try container.decode([String: Answer].self, forKey: .answers)
+        photos = try container.decode([InspectionPhoto].self, forKey: .photos)
+        openIssues = try container.decode([OpenIssue].self, forKey: .openIssues)
+        recommendations = try container.decode([String].self, forKey: .recommendations)
+        nextBuildingSequence = try container.decode(Int.self, forKey: .nextBuildingSequence)
+        saveAlsoToPhotoLibrary = try container.decode(Bool.self, forKey: .saveAlsoToPhotoLibrary)
+        isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+    }
 }

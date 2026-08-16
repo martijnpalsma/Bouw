@@ -31,6 +31,7 @@ final class InspectionData: ObservableObject {
 
     /// When true, newly captured photos are also written to the system photo library (opt-in).
     @Published var saveAlsoToPhotoLibrary: Bool = false
+    @Published var isArchived: Bool = false
 
     private var nextBuildingSequence: Int = 0
     private var autosaveTask: Task<Void, Never>?
@@ -38,9 +39,37 @@ final class InspectionData: ObservableObject {
 
     init(loadFromDisk: Bool = true) {
         if loadFromDisk {
-            loadData()
+            // Start empty on dashboard; dossiers are opened explicitly.
+            _ = try? SecureStore.loadIndex()
         }
         hasLoaded = true
+    }
+
+    var displayTitle: String {
+        let name = companyName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "Nieuw dossier" : name
+    }
+
+    var placeLabel: String {
+        DossierProgress.place(from: address)
+    }
+
+    var progressValue: Double {
+        DossierProgress.calculate(from: makeSnapshot())
+    }
+
+    private var hasMeaningfulContent: Bool {
+        !companyName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !buildings.isEmpty
+            || !photos.isEmpty
+            || !answers.isEmpty
+            || !selectedBusinessTypes.isEmpty
+    }
+
+    private func saveIfMeaningful() {
+        guard hasMeaningfulContent else { return }
+        saveData()
     }
 
     // MARK: - Persistence
@@ -73,6 +102,127 @@ final class InspectionData: ObservableObject {
         }
     }
 
+    func openDossier(id: UUID) {
+        saveIfMeaningful()
+        do {
+            guard let snapshot = try SecureStore.load(id: id) else { return }
+            apply(snapshot)
+            AppLogger.dossierOpened(id: id.uuidString)
+        } catch {
+            AppLogger.dossierSaveFailed(error)
+        }
+    }
+
+    func createNewDossier() {
+        saveIfMeaningful()
+        resetEmpty()
+        lifecycleStatus = .preparation
+        saveData()
+        AppLogger.dossierOpened(id: dossierId.uuidString)
+    }
+
+    @discardableResult
+    func duplicateCurrentDossier() -> UUID {
+        saveIfMeaningful()
+        let originalPhotos = photos
+        var copy = makeSnapshot()
+        copy.id = UUID()
+        copy.companyName = copy.companyName.isEmpty ? "Kopie" : "\(copy.companyName) (kopie)"
+        copy.status = .preparation
+        copy.isArchived = false
+        copy.updatedAt = Date()
+
+        // New photo IDs so originals are not deleted with the copy.
+        var remapped: [InspectionPhoto] = []
+        for photo in originalPhotos {
+            let newId = UUID()
+            if let image = PhotoStore.loadImage(photoId: photo.id, maxPixelSize: 4096) {
+                try? PhotoStore.saveImage(image, photoId: newId)
+            }
+            var newPhoto = photo
+            newPhoto.id = newId
+            newPhoto.fileName = "\(newId.uuidString).jpg"
+            remapped.append(newPhoto)
+        }
+        copy.photos = remapped
+
+        do {
+            try SecureStore.save(copy)
+            apply(copy)
+            AppLogger.dossierOpened(id: copy.id.uuidString)
+        } catch {
+            AppLogger.dossierSaveFailed(error)
+        }
+        return copy.id
+    }
+
+    func archiveCurrentDossier(archived: Bool = true) {
+        isArchived = archived
+        if archived, lifecycleStatus != .completed {
+            lifecycleStatus = .completed
+        }
+        saveData()
+    }
+
+    func deleteDossier(id: UUID) {
+        let photoIds: [UUID]
+        if id == dossierId {
+            photoIds = photos.map(\.id)
+        } else if let snapshot = try? SecureStore.load(id: id) {
+            photoIds = snapshot.photos.map(\.id)
+        } else {
+            photoIds = []
+        }
+
+        do {
+            try SecureStore.deleteDossier(id: id, photoIds: photoIds)
+            if id == dossierId {
+                resetEmpty()
+            }
+        } catch {
+            AppLogger.dossierSaveFailed(error)
+        }
+    }
+
+    func exportText() -> String {
+        // Shared lightweight export used from dashboard actions.
+        var text = "INSPECTIE RAPPORT\n==================\n\n"
+        text += "Bedrijfsnaam: \(companyName)\n"
+        text += "Adres: \(address)\n"
+        text += "Plaats: \(placeLabel)\n"
+        text += "Contactpersoon: \(contactPerson)\n"
+        text += "Inspectiedatum: \(inspectionDate.formatted(date: .long, time: .omitted))\n"
+        text += "Status: \(lifecycleStatus.rawValue)\n"
+        text += "Voortgang: \(Int((progressValue * 100).rounded()))%\n"
+        text += "Gebouwen: \(buildings.count)\n"
+        text += "Foto's: \(photos.count)\n"
+        return text
+    }
+
+    private func resetEmpty() {
+        dossierId = UUID()
+        companyName = ""
+        address = ""
+        contactPerson = ""
+        inspectionDate = Date()
+        lifecycleStatus = .preparation
+        buildings = []
+        selectedBusinessTypes = []
+        customBusinessType = ""
+        inspectBuildings = true
+        inspectInventory = true
+        inspectGoods = true
+        inspectDamage = true
+        topics = QuestionDatabase.defaultTopicNames.map { InspectionTopic(name: $0, category: .general) }
+        answers = [:]
+        photos = []
+        openIssues = []
+        recommendations = []
+        nextBuildingSequence = 0
+        saveAlsoToPhotoLibrary = false
+        isArchived = false
+    }
+
     private func makeSnapshot() -> InspectionSnapshot {
         InspectionSnapshot(
             id: dossierId,
@@ -94,7 +244,9 @@ final class InspectionData: ObservableObject {
             openIssues: openIssues,
             recommendations: recommendations,
             nextBuildingSequence: nextBuildingSequence,
-            saveAlsoToPhotoLibrary: saveAlsoToPhotoLibrary
+            saveAlsoToPhotoLibrary: saveAlsoToPhotoLibrary,
+            isArchived: isArchived,
+            updatedAt: Date()
         )
     }
 
@@ -121,6 +273,7 @@ final class InspectionData: ObservableObject {
         recommendations = snapshot.recommendations
         nextBuildingSequence = snapshot.nextBuildingSequence
         saveAlsoToPhotoLibrary = snapshot.saveAlsoToPhotoLibrary
+        isArchived = snapshot.isArchived
     }
 
     // MARK: - Buildings

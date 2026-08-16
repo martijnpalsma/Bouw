@@ -1,30 +1,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selectedTab = 0
-    @EnvironmentObject private var inspectionData: InspectionData
+    @EnvironmentObject private var router: AppRouter
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DossierView()
-                .tabItem { Label("Dossier", systemImage: "building.2") }
-                .tag(0)
-
-            InspectionRoundView()
-                .tabItem { Label("Inspectie", systemImage: "checklist") }
-                .tag(1)
-
-            QuestionnaireView()
-                .tabItem { Label("Vragenlijst", systemImage: "list.bullet.clipboard") }
-                .tag(2)
-
-            PhotoRegistrationView()
-                .tabItem { Label("Foto's", systemImage: "photo.on.rectangle") }
-                .tag(3)
-
-            SummaryView()
-                .tabItem { Label("Samenvatting", systemImage: "doc.text") }
-                .tag(4)
+        Group {
+            if router.isShowingDashboard {
+                DashboardView()
+            } else {
+                InspectionWorkspaceView()
+            }
         }
     }
 }

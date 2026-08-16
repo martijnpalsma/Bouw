@@ -26,13 +26,21 @@ Native SwiftUI-app voor risicodeskundigen (iPad-first), gebaseerd op de Bitrig-p
 
 ```
 RiskWalk/
-  App/           # Entry + tabs + lock screen
-  Models/        # Building (UUID + Gxx), questions, snapshot
-  Services/      # SecureStore, PhotoStore, Permissions, Logger, AppLock
-  Views/         # Dossier, inspectie, vragen, foto's, export, security
+  App/           # Entry + dashboard/workspace routing + lock screen
+  Models/        # Building (UUID + Gxx), questions, snapshot, AppFrame/AppRouter
+  Services/      # SecureStore (multi-dossier), PhotoStore, Permissions, Logger, AppLock
+  Views/         # Dashboard, workspace frames, export, security
   Resources/     # Info.plist, PrivacyInfo.xcprivacy
 RiskWalkTests/   # Gebouwnnummering, conditional questions, persistence
 ```
+
+## Dashboard & frames
+
+- **Dashboard**: overzicht van dossiers (naam, plaats, datum, status, voortgang)
+- Acties: nieuwe inspectie, openen, dupliceren, archiveren, exporteren, verwijderen
+- Snelle frame-knoppen per dossier: Openen / Inspectie / Foto's / Rapport
+- **Workspace**: iPad-sidebar of iPhone-segmented control om direct te wisselen tussen
+  Dossier → Inspectie → Vragenlijst → Foto's → Samenvatting zonder dataverlies
 
 ## Bekende vervolgstappen
 

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .builder-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 2rem;
+            height: calc(100vh - 200px);
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .agent-palette {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .palette-agent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .palette-agent:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .palette-agent:active {
+            cursor: grabbing;
+        }
+
+        .palette-agent-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .palette-agent-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .canvas {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 15px;
+            position: relative;
+            min-height: 600px;
+            overflow: auto;
+        }
+
+        .canvas-grid {
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            width: 100%;
+            height: 100%;
+            min-height: 600px;
+        }
+
+        .canvas-node {
+            position: absolute;
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 1.5rem;
+            min-width: 180px;
+            cursor: move;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .canvas-node:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .canvas-node.selected {
+            border-color: #28a745;
+            border-width: 4px;
+        }
+
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .node-icon {
+            font-size: 2rem;
+        }
+
+        .node-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .node-delete:hover {
+            background: #c82333;
+        }
+
+        .node-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-type {
+            font-size: 0.75rem;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .node-connections {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .connection-point {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin: 0.25rem 0;
+        }
+
+        .connection-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+
+        .properties-panel h3 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .property-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .property-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .property-group input,
+        .property-group select,
+        .property-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .property-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .toolbar {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toolbar-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .connection-line {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .help-text {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+
+        .stats-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 1400px) {
+            .builder-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .panel {
+                max-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span style="font-size: 2rem;">🔄</span>
+                <span>Workflow Builder</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="agent-platform.html" class="nav-link">🎯 Dashboard</a></li>
+                <li><a href="agent-workflow-builder.html" class="nav-link active">🔄 Workflows</a></li>
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🔄 Workflow Builder</h1>
+            <p>Sleep agents naar het canvas en verbind ze om workflows te maken</p>
+        </div>
+
+        <div class="toolbar">
+            <button class="toolbar-btn" onclick="saveWorkflow()">💾 Opslaan</button>
+            <button class="toolbar-btn" onclick="loadWorkflow()">📂 Laden</button>
+            <button class="toolbar-btn" onclick="clearCanvas()">🗑️ Canvas Leegmaken</button>
+            <button class="toolbar-btn" onclick="exportWorkflow()">📤 Exporteren</button>
+            <button class="toolbar-btn" onclick="validateWorkflow()">✅ Valideren</button>
+            <button class="toolbar-btn" onclick="window.location.href='agent-platform.html'">◀️ Terug</button>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-value" id="node-count">0</span>
+                <span class="stat-label">Nodes</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="connection-count">0</span>
+                <span class="stat-label">Verbindingen</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="workflow-status">Ontwerp</span>
+                <span class="stat-label">Status</span>
+            </div>
+        </div>
+
+        <div class="builder-layout">
+            <aside class="panel">
+                <h2>🎨 Agent Palette</h2>
+                <div class="help-text">
+                    💡 Sleep een agent naar het canvas om te beginnen
+                </div>
+                <div class="agent-palette" id="agent-palette">
+                    <!-- Dynamisch gevuld -->
+                </div>
+            </aside>
+
+            <main class="panel" style="padding: 0; overflow: hidden;">
+                <div class="canvas" id="canvas">
+                    <div class="canvas-grid" id="canvas-grid">
+                        <svg id="connection-svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                            <!-- SVG lines voor connecties -->
+                        </svg>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="panel properties-panel">
+                <h2>⚙️ Properties</h2>
+                <div id="properties-content">
+                    <div class="help-text">
+                        Selecteer een node om eigenschappen te bekijken en te bewerken
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 2rem;">🚀 Acties</h2>
+                <button class="btn btn-success" onclick="testWorkflow()">▶️ Test Workflow</button>
+                <button class="btn" onclick="saveWorkflow()">💾 Opslaan</button>
+                <button class="btn btn-secondary" onclick="exportWorkflow()">📤 Exporteren</button>
+                <button class="btn btn-danger" onclick="clearCanvas()">🗑️ Alles Wissen</button>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let agents = [];
+        let canvasNodes = [];
+        let connections = [];
+        let selectedNode = null;
+        let draggedNode = null;
+        let dragOffset = { x: 0, y: 0 };
+        let nodeCounter = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAgentsFromRegistry();
+            setupDragAndDrop();
+            loadSavedWorkflow();
+        });
+
+        function loadAgentsFromRegistry() {
+            // Load from localStorage or use defaults
+            const storedAgents = localStorage.getItem('registeredAgents');
+            if (storedAgents) {
+                agents = JSON.parse(storedAgents);
+            } else {
+                // Default agents
+                agents = [
+                    {
+                        id: 'gebouw-formulier',
+                        name: 'Gebouw Formulier',
+                        icon: '📋',
+                        type: 'input',
+                        description: 'Input data verzameling'
+                    },
+                    {
+                        id: 'brandweer-agent',
+                        name: 'Brandweer Agent',
+                        icon: '🚒',
+                        type: 'analysis',
+                        description: 'Brandweer analyse'
+                    },
+                    {
+                        id: 'bouw-systeem',
+                        name: 'Bouw Systeem',
+                        icon: '🏢',
+                        type: 'output',
+                        description: 'Output generatie'
+                    },
+                    {
+                        id: 'gebouwmaterialen-agent',
+                        name: 'Materialen Agent',
+                        icon: '🧱',
+                        type: 'analysis',
+                        description: 'Materialen berekening'
+                    },
+                    {
+                        id: 'open-data-agent',
+                        name: 'Open Data Agent',
+                        icon: '📊',
+                        type: 'integration',
+                        description: 'Open data integratie'
+                    },
+                    {
+                        id: 'meet-agent',
+                        name: 'Meet Agent',
+                        icon: '📏',
+                        type: 'processing',
+                        description: 'Oppervlakte & volume'
+                    }
+                ];
+            }
+
+            renderAgentPalette();
+        }
+
+        function renderAgentPalette() {
+            const palette = document.getElementById('agent-palette');
+            palette.innerHTML = agents.map(agent => `
+                <div class="palette-agent" draggable="true" data-agent-id="${agent.id}">
+                    <div class="palette-agent-icon">${agent.icon}</div>
+                    <div class="palette-agent-name">${agent.name}</div>
+                </div>
+            `).join('');
+
+            // Add drag event listeners
+            document.querySelectorAll('.palette-agent').forEach(el => {
+                el.addEventListener('dragstart', handleDragStart);
+            });
+        }
+
+        function setupDragAndDrop() {
+            const canvas = document.getElementById('canvas-grid');
+            
+            canvas.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            canvas.addEventListener('drop', handleDrop);
+
+            // Canvas node dragging
+            canvas.addEventListener('mousedown', handleNodeMouseDown);
+            document.addEventListener('mousemove', handleNodeMouseMove);
+            document.addEventListener('mouseup', handleNodeMouseUp);
+        }
+
+        function handleDragStart(e) {
+            const agentId = e.target.closest('.palette-agent').dataset.agentId;
+            e.dataTransfer.setData('agentId', agentId);
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const agentId = e.dataTransfer.getData('agentId');
+            const agent = agents.find(a => a.id === agentId);
+            
+            if (agent) {
+                const canvas = document.getElementById('canvas');
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left + canvas.scrollLeft - 90;
+                const y = e.clientY - rect.top + canvas.scrollTop - 50;
+
+                addNodeToCanvas(agent, x, y);
+            }
+        }
+
+        function addNodeToCanvas(agent, x, y) {
+            const nodeId = 'node-' + (++nodeCounter);
+            const node = {
+                id: nodeId,
+                agentId: agent.id,
+                name: agent.name,
+                icon: agent.icon,
+                type: agent.type,
+                x: x,
+                y: y,
+                config: {}
+            };
+
+            canvasNodes.push(node);
+            renderNode(node);
+            updateStats();
+        }
+
+        function renderNode(node) {
+            const canvasGrid = document.getElementById('canvas-grid');
+            const nodeEl = document.createElement('div');
+            nodeEl.className = 'canvas-node';
+            nodeEl.id = node.id;
+            nodeEl.style.left = node.x + 'px';
+            nodeEl.style.top = node.y + 'px';
+            nodeEl.innerHTML = `
+                <div class="node-header">
+                    <div class="node-icon">${node.icon}</div>
+                    <button class="node-delete" onclick="deleteNode('${node.id}')">×</button>
+                </div>
+                <div class="node-name">${node.name}</div>
+                <div class="node-type">${node.type}</div>
+                <div class="node-connections">
+                    <div class="connection-point">
+                        <span class="connection-dot"></span>
+                        <span>Input</span>
+                    </div>
+                    <div class="connection-point">
+                        <span class="connection-dot"></span>
+                        <span>Output</span>
+                    </div>
+                </div>
+            `;
+
+            nodeEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectNode(node.id);
+            });
+
+            canvasGrid.appendChild(nodeEl);
+        }
+
+        function handleNodeMouseDown(e) {
+            const nodeEl = e.target.closest('.canvas-node');
+            if (nodeEl && !e.target.closest('.node-delete')) {
+                draggedNode = canvasNodes.find(n => n.id === nodeEl.id);
+                const rect = nodeEl.getBoundingClientRect();
+                const canvas = document.getElementById('canvas');
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+                
+                nodeEl.style.zIndex = '1000';
+            }
+        }
+
+        function handleNodeMouseMove(e) {
+            if (draggedNode) {
+                const canvas = document.getElementById('canvas');
+                const rect = canvas.getBoundingClientRect();
+                
+                const x = e.clientX - rect.left + canvas.scrollLeft - dragOffset.x;
+                const y = e.clientY - rect.top + canvas.scrollTop - dragOffset.y;
+                
+                draggedNode.x = Math.max(0, x);
+                draggedNode.y = Math.max(0, y);
+                
+                const nodeEl = document.getElementById(draggedNode.id);
+                nodeEl.style.left = draggedNode.x + 'px';
+                nodeEl.style.top = draggedNode.y + 'px';
+                
+                drawConnections();
+            }
+        }
+
+        function handleNodeMouseUp(e) {
+            if (draggedNode) {
+                const nodeEl = document.getElementById(draggedNode.id);
+                nodeEl.style.zIndex = '';
+                draggedNode = null;
+            }
+        }
+
+        function selectNode(nodeId) {
+            selectedNode = canvasNodes.find(n => n.id === nodeId);
+            
+            // Update UI
+            document.querySelectorAll('.canvas-node').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.getElementById(nodeId).classList.add('selected');
+            
+            showNodeProperties(selectedNode);
+        }
+
+        function showNodeProperties(node) {
+            const propertiesContent = document.getElementById('properties-content');
+            propertiesContent.innerHTML = `
+                <h3>${node.icon} ${node.name}</h3>
+                <div class="property-group">
+                    <label>Node ID</label>
+                    <input type="text" value="${node.id}" disabled>
+                </div>
+                <div class="property-group">
+                    <label>Agent Type</label>
+                    <input type="text" value="${node.type}" disabled>
+                </div>
+                <div class="property-group">
+                    <label>Positie X</label>
+                    <input type="number" value="${Math.round(node.x)}" disabled>
+                </div>
+                <div class="property-group">
+                    <label>Positie Y</label>
+                    <input type="number" value="${Math.round(node.y)}" disabled>
+                </div>
+                <div class="property-group">
+                    <label>Notities</label>
+                    <textarea placeholder="Voeg notities toe..." onchange="updateNodeConfig('${node.id}', 'notes', this.value)">${node.config.notes || ''}</textarea>
+                </div>
+            `;
+        }
+
+        function updateNodeConfig(nodeId, key, value) {
+            const node = canvasNodes.find(n => n.id === nodeId);
+            if (node) {
+                node.config[key] = value;
+            }
+        }
+
+        function deleteNode(nodeId) {
+            if (confirm('Weet je zeker dat je deze node wilt verwijderen?')) {
+                canvasNodes = canvasNodes.filter(n => n.id !== nodeId);
+                connections = connections.filter(c => c.from !== nodeId && c.to !== nodeId);
+                
+                const nodeEl = document.getElementById(nodeId);
+                if (nodeEl) {
+                    nodeEl.remove();
+                }
+                
+                drawConnections();
+                updateStats();
+                
+                if (selectedNode && selectedNode.id === nodeId) {
+                    selectedNode = null;
+                    document.getElementById('properties-content').innerHTML = `
+                        <div class="help-text">
+                            Selecteer een node om eigenschappen te bekijken
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function drawConnections() {
+            const svg = document.getElementById('connection-svg');
+            svg.innerHTML = '';
+            
+            connections.forEach(conn => {
+                const fromNode = canvasNodes.find(n => n.id === conn.from);
+                const toNode = canvasNodes.find(n => n.id === conn.to);
+                
+                if (fromNode && toNode) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', fromNode.x + 90);
+                    line.setAttribute('y1', fromNode.y + 75);
+                    line.setAttribute('x2', toNode.x + 90);
+                    line.setAttribute('y2', toNode.y + 75);
+                    line.setAttribute('stroke', '#667eea');
+                    line.setAttribute('stroke-width', '3');
+                    line.setAttribute('marker-end', 'url(#arrowhead)');
+                    svg.appendChild(line);
+                }
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('node-count').textContent = canvasNodes.length;
+            document.getElementById('connection-count').textContent = connections.length;
+        }
+
+        function saveWorkflow() {
+            const workflow = {
+                nodes: canvasNodes,
+                connections: connections,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('currentWorkflow', JSON.stringify(workflow));
+            alert('✅ Workflow opgeslagen!');
+        }
+
+        function loadSavedWorkflow() {
+            const saved = localStorage.getItem('currentWorkflow');
+            if (saved) {
+                const workflow = JSON.parse(saved);
+                canvasNodes = workflow.nodes || [];
+                connections = workflow.connections || [];
+                
+                canvasNodes.forEach(node => renderNode(node));
+                drawConnections();
+                updateStats();
+            }
+        }
+
+        function loadWorkflow() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const workflow = JSON.parse(event.target.result);
+                        clearCanvas();
+                        canvasNodes = workflow.nodes || [];
+                        connections = workflow.connections || [];
+                        nodeCounter = Math.max(...canvasNodes.map(n => parseInt(n.id.split('-')[1])), 0);
+                        
+                        canvasNodes.forEach(node => renderNode(node));
+                        drawConnections();
+                        updateStats();
+                        alert('✅ Workflow geladen!');
+                    } catch (err) {
+                        alert('❌ Fout bij laden van workflow');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function clearCanvas() {
+            if (canvasNodes.length > 0) {
+                if (confirm('Weet je zeker dat je het canvas wilt leegmaken?')) {
+                    canvasNodes = [];
+                    connections = [];
+                    selectedNode = null;
+                    nodeCounter = 0;
+                    
+                    document.getElementById('canvas-grid').innerHTML = `
+                        <svg id="connection-svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                        </svg>
+                    `;
+                    
+                    document.getElementById('properties-content').innerHTML = `
+                        <div class="help-text">
+                            Selecteer een node om eigenschappen te bekijken
+                        </div>
+                    `;
+                    
+                    updateStats();
+                }
+            }
+        }
+
+        function exportWorkflow() {
+            const workflow = {
+                name: 'Custom Workflow',
+                nodes: canvasNodes,
+                connections: connections,
+                created: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const dataStr = JSON.stringify(workflow, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `workflow_${Date.now()}.json`;
+            link.click();
+            
+            alert('✅ Workflow geëxporteerd!');
+        }
+
+        function validateWorkflow() {
+            const errors = [];
+            
+            if (canvasNodes.length === 0) {
+                errors.push('Workflow heeft geen nodes');
+            }
+            
+            const inputNodes = canvasNodes.filter(n => n.type === 'input');
+            if (inputNodes.length === 0) {
+                errors.push('Workflow heeft geen input node');
+            }
+            
+            const outputNodes = canvasNodes.filter(n => n.type === 'output');
+            if (outputNodes.length === 0) {
+                errors.push('Workflow heeft geen output node');
+            }
+            
+            if (errors.length > 0) {
+                alert('❌ Validatie fouten:\n\n' + errors.join('\n'));
+            } else {
+                alert('✅ Workflow is valide!');
+            }
+        }
+
+        function testWorkflow() {
+            if (canvasNodes.length === 0) {
+                alert('❌ Voeg eerst nodes toe aan het canvas');
+                return;
+            }
+            
+            alert('🚀 Workflow test gestart!\n\nDe workflow wordt gesimuleerd in het dashboard.');
+            window.location.href = 'agent-platform.html';
+        }
+
+        // Canvas click to deselect
+        document.getElementById('canvas').addEventListener('click', function(e) {
+            if (e.target === this || e.target.id === 'canvas-grid') {
+                document.querySelectorAll('.canvas-node').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                selectedNode = null;
+                document.getElementById('properties-content').innerHTML = `
+                    <div class="help-text">
+                        Selecteer een node om eigenschappen te bekijken
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

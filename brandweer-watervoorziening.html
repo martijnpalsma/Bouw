@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandweer & Watervoorziening Agent</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .logo-text {
+            background: linear-gradient(45deg, #ffffff, #e8f4fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #6c757d;
+            text-align: right;
+        }
+
+        .distance-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .distance-good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .distance-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .distance-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .status-beroeps {
+            background: #007bff;
+            color: white;
+        }
+
+        .status-vrijwilligers {
+            background: #28a745;
+            color: white;
+        }
+
+        .map-container {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+
+        .equipment-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .equipment-item {
+            background: #e7f3ff;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-size: 0.9rem;
+        }
+
+        .water-sources {
+            margin-top: 1.5rem;
+        }
+
+        .water-source-item {
+            background: #e8f5e9;
+            border: 2px solid #c8e6c9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .water-source-item h4 {
+            color: #2e7d32;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🚒</span>
+                <span class="logo-text">Brandweer & Watervoorziening</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+                <li><a href="gebouw-formulier.html" class="nav-link">📋 Formulier</a></li>
+                <li><a href="brandweer-watervoorziening.html" class="nav-link active">🚒 Brandweer</a></li>
+                <li><a href="bouw-informatie-systeem.html" class="nav-link">🏢 Systeem</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🚒 Brandweer & Watervoorziening Agent</h1>
+            <p>Analyse van brandweerzorgen en watervoorziening op basis van locatie</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 style="margin-bottom: 1.5rem; color: #667eea;">📍 Locatie Informatie</h2>
+                
+                <div class="alert alert-info">
+                    <strong>ℹ️ Let op:</strong> Deze agent kan postcode ontvangen van andere agents in het systeem of handmatig worden ingevoerd.
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="postcode">Postcode</label>
+                        <input type="text" id="postcode" placeholder="1234 AB" maxlength="7">
+                    </div>
+                    <div class="input-field">
+                        <label for="huisnummer">Huisnummer</label>
+                        <input type="text" id="huisnummer" placeholder="123">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="straatnaam">Straatnaam (optioneel)</label>
+                        <input type="text" id="straatnaam" placeholder="Hoofdstraat">
+                    </div>
+                    <div class="input-field">
+                        <label for="plaats">Plaats (optioneel)</label>
+                        <input type="text" id="plaats" placeholder="Amsterdam">
+                    </div>
+                </div>
+
+                <button class="btn" onclick="analyzeLocation()">🔍 Analyseer Locatie</button>
+                <button class="btn btn-secondary" onclick="receiveFromAgent()" style="margin-left: 1rem;">📥 Ontvang van Agent</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Gegevens worden opgehaald...</p>
+            </div>
+
+            <div class="results-section" id="results">
+                <h2 style="margin-bottom: 1.5rem; color: #667eea;">📊 Analyse Resultaten</h2>
+
+                <div class="map-container" id="mapContainer">
+                    <p>🗺️ Kaart met brandweerposten en watervoorziening wordt hier weergegeven</p>
+                </div>
+
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>🚒 Dichtstbijzijnde Brandweerpost</h3>
+                        <div class="info-row">
+                            <span class="info-label">Naam</span>
+                            <span class="info-value" id="station-name">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Type</span>
+                            <span class="info-value" id="station-type">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Afstand</span>
+                            <span class="info-value" id="station-distance">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Rijtijd</span>
+                            <span class="info-value" id="station-duration">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Adres</span>
+                            <span class="info-value" id="station-address">-</span>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🚨 Opkomsttijden</h3>
+                        <div class="info-row">
+                            <span class="info-label">Primaire eenheid</span>
+                            <span class="info-value" id="response-primary">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Secundaire eenheid</span>
+                            <span class="info-value" id="response-secondary">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Hoogwerker</span>
+                            <span class="info-value" id="response-aerial">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Risicoklasse</span>
+                            <span class="info-value" id="risk-class">-</span>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🚛 Beschikbaar Materieel</h3>
+                        <div id="equipment-container">
+                            <div class="equipment-list">
+                                <!-- Dynamisch gevuld -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="water-sources">
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">💧 Watervoorziening</h3>
+                    <div id="water-sources-container">
+                        <!-- Dynamisch gevuld -->
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn" onclick="generatePDF()">📄 Genereer PDF Rapport</button>
+                    <button class="btn btn-secondary" onclick="sendToAgent()">📤 Verstuur naar Agent</button>
+                    <button class="btn btn-secondary" onclick="exportJSON()">💾 Exporteer Data (JSON)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAnalysisData = null;
+
+        // Demo data - In productie zou dit van echte APIs komen
+        const fireStations = [
+            {
+                name: "Brandweer Kazerne Centrum",
+                type: "beroeps",
+                lat: 52.3702,
+                lon: 4.8952,
+                address: "Hoofdweg 100, Amsterdam",
+                equipment: ["Tankautospuit", "Hulpverleningsvoertuig", "Hoogwerker", "Waterongevallenvoertuig"],
+                personnel: 24,
+                responseTime24_7: true
+            },
+            {
+                name: "Brandweer Post Noord",
+                type: "vrijwilligers",
+                lat: 52.4102,
+                lon: 4.9152,
+                address: "Noordelijke Weg 45, Amsterdam Noord",
+                equipment: ["Tankautospuit", "Hulpverleningsvoertuig"],
+                personnel: 12,
+                responseTime24_7: false
+            },
+            {
+                name: "Brandweer Kazerne West",
+                type: "beroeps",
+                lat: 52.3602,
+                lon: 4.8452,
+                address: "Weststraat 200, Amsterdam",
+                equipment: ["Tankautospuit", "Hoogwerker", "Schuimblusvoertuig", "Commandowagen"],
+                personnel: 18,
+                responseTime24_7: true
+            }
+        ];
+
+        function analyzeLocation() {
+            const postcode = document.getElementById('postcode').value;
+            const huisnummer = document.getElementById('huisnummer').value;
+
+            if (!postcode || !huisnummer) {
+                alert('Vul minimaal de postcode en huisnummer in');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            // Simuleer API call met timeout
+            setTimeout(() => {
+                performAnalysis(postcode, huisnummer);
+            }, 1500);
+        }
+
+        function performAnalysis(postcode, huisnummer) {
+            // Simuleer coordinaten voor de ingevoerde locatie
+            const targetLocation = {
+                lat: 52.3676 + (Math.random() - 0.5) * 0.1,
+                lon: 4.9041 + (Math.random() - 0.5) * 0.1
+            };
+
+            // Bereken afstanden en rijtijden
+            const stationsWithDistance = fireStations.map(station => {
+                const distance = calculateDistance(
+                    targetLocation.lat, targetLocation.lon,
+                    station.lat, station.lon
+                );
+                const duration = calculateDrivingTime(distance, station.type);
+                
+                return {
+                    ...station,
+                    distance: distance,
+                    duration: duration
+                };
+            });
+
+            // Sorteer op afstand
+            stationsWithDistance.sort((a, b) => a.distance - b.distance);
+            const nearest = stationsWithDistance[0];
+
+            // Vul resultaten in
+            document.getElementById('station-name').textContent = nearest.name;
+            
+            const typeBadge = nearest.type === 'beroeps' 
+                ? '<span class="status-badge status-beroeps">BEROEPS</span>'
+                : '<span class="status-badge status-vrijwilligers">VRIJWILLIGERS</span>';
+            document.getElementById('station-type').innerHTML = typeBadge;
+            
+            const distanceClass = nearest.distance < 3 ? 'distance-good' 
+                : nearest.distance < 5 ? 'distance-warning' 
+                : 'distance-danger';
+            document.getElementById('station-distance').innerHTML = 
+                `<span class="distance-badge ${distanceClass}">${nearest.distance.toFixed(1)} km</span>`;
+            
+            document.getElementById('station-duration').textContent = `${nearest.duration} minuten`;
+            document.getElementById('station-address').textContent = nearest.address;
+
+            // Opkomsttijden
+            document.getElementById('response-primary').textContent = `${nearest.duration} min`;
+            document.getElementById('response-secondary').textContent = 
+                `${nearest.duration + (nearest.type === 'beroeps' ? 3 : 5)} min`;
+            document.getElementById('response-aerial').textContent = 
+                stationsWithDistance.find(s => s.equipment.includes('Hoogwerker'))
+                    ? `${stationsWithDistance.find(s => s.equipment.includes('Hoogwerker')).duration + 2} min`
+                    : 'Niet beschikbaar';
+            
+            const riskClass = nearest.distance < 3 ? 'Laag' 
+                : nearest.distance < 5 ? 'Gemiddeld' 
+                : 'Hoog';
+            document.getElementById('risk-class').textContent = riskClass;
+
+            // Materieel
+            const equipmentContainer = document.querySelector('.equipment-list');
+            equipmentContainer.innerHTML = nearest.equipment
+                .map(eq => `<div class="equipment-item">✓ ${eq}</div>`)
+                .join('');
+
+            // Watervoorziening
+            const waterSources = generateWaterSources(targetLocation);
+            const waterContainer = document.getElementById('water-sources-container');
+            waterContainer.innerHTML = waterSources.map(source => `
+                <div class="water-source-item">
+                    <h4>${source.icon} ${source.type}</h4>
+                    <div class="info-row">
+                        <span class="info-label">Locatie</span>
+                        <span class="info-value">${source.location}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Afstand</span>
+                        <span class="info-value">${source.distance} meter</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Capaciteit</span>
+                        <span class="info-value">${source.capacity}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Toegankelijkheid</span>
+                        <span class="info-value">${source.accessibility}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Bewaar data voor export
+            currentAnalysisData = {
+                location: {
+                    postcode: postcode,
+                    huisnummer: huisnummer,
+                    coordinates: targetLocation
+                },
+                fireStation: nearest,
+                allStations: stationsWithDistance,
+                waterSources: waterSources,
+                timestamp: new Date().toISOString()
+            };
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius van de aarde in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function calculateDrivingTime(distance, stationType) {
+            // Geschatte gemiddelde snelheid met prioriteit
+            const avgSpeed = stationType === 'beroeps' ? 60 : 50; // km/h
+            const baseTime = (distance / avgSpeed) * 60; // in minuten
+            const turnoutTime = stationType === 'beroeps' ? 2 : 5; // uitruktijd in minuten
+            return Math.round(baseTime + turnoutTime);
+        }
+
+        function generateWaterSources(location) {
+            return [
+                {
+                    type: "Brandkraan",
+                    icon: "🚰",
+                    location: "Voor locatie",
+                    distance: 15,
+                    capacity: "60 m³/uur",
+                    accessibility: "Goed"
+                },
+                {
+                    type: "Open water (kanaal)",
+                    icon: "🌊",
+                    location: "Zuidzijde, 200m",
+                    distance: 200,
+                    capacity: "Onbeperkt",
+                    accessibility: "Goed - Vlakke oever"
+                },
+                {
+                    type: "Brandkraan",
+                    icon: "🚰",
+                    location: "Achter locatie",
+                    distance: 50,
+                    capacity: "60 m³/uur",
+                    accessibility: "Goed"
+                },
+                {
+                    type: "Bluswaterriool",
+                    icon: "⚡",
+                    location: "Hoofdstraat",
+                    distance: 100,
+                    capacity: "90 m³/uur",
+                    accessibility: "Uitstekend"
+                }
+            ];
+        }
+
+        function receiveFromAgent() {
+            // Simuleer ontvangst van data van een andere agent
+            const agentData = {
+                postcode: "1012 JS",
+                huisnummer: "45",
+                straatnaam: "Damstraat",
+                plaats: "Amsterdam"
+            };
+
+            document.getElementById('postcode').value = agentData.postcode;
+            document.getElementById('huisnummer').value = agentData.huisnummer;
+            document.getElementById('straatnaam').value = agentData.straatnaam;
+            document.getElementById('plaats').value = agentData.plaats;
+
+            alert('✅ Data ontvangen van andere agent!\n\nPostcode: ' + agentData.postcode + 
+                  '\nHuisnummer: ' + agentData.huisnummer);
+        }
+
+        function generatePDF() {
+            if (!currentAnalysisData) {
+                alert('Voer eerst een analyse uit');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFillColor(102, 126, 234);
+            doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.text('🚒 Brandweer & Watervoorziening Rapport', 15, 15);
+            doc.setFontSize(10);
+            doc.text('Gegenereerd op: ' + new Date().toLocaleString('nl-NL'), 15, 23);
+
+            // Locatie info
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(14);
+            doc.text('Locatie Informatie', 15, 40);
+            doc.setFontSize(10);
+            doc.text(`Postcode: ${currentAnalysisData.location.postcode}`, 15, 48);
+            doc.text(`Huisnummer: ${currentAnalysisData.location.huisnummer}`, 15, 54);
+
+            // Brandweerpost info
+            doc.setFontSize(14);
+            doc.text('Dichtstbijzijnde Brandweerpost', 15, 65);
+            doc.setFontSize(10);
+            doc.text(`Naam: ${currentAnalysisData.fireStation.name}`, 15, 73);
+            doc.text(`Type: ${currentAnalysisData.fireStation.type === 'beroeps' ? 'Beroeps' : 'Vrijwilligers'}`, 15, 79);
+            doc.text(`Afstand: ${currentAnalysisData.fireStation.distance.toFixed(1)} km`, 15, 85);
+            doc.text(`Rijtijd: ${currentAnalysisData.fireStation.duration} minuten`, 15, 91);
+
+            // Materieel
+            doc.setFontSize(14);
+            doc.text('Beschikbaar Materieel', 15, 105);
+            doc.setFontSize(10);
+            let yPos = 113;
+            currentAnalysisData.fireStation.equipment.forEach(eq => {
+                doc.text(`• ${eq}`, 15, yPos);
+                yPos += 6;
+            });
+
+            // Watervoorziening
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.text('Watervoorziening', 15, 20);
+            doc.setFontSize(10);
+            yPos = 28;
+            currentAnalysisData.waterSources.forEach(source => {
+                doc.text(`${source.type}:`, 15, yPos);
+                doc.text(`  Afstand: ${source.distance}m`, 20, yPos + 6);
+                doc.text(`  Capaciteit: ${source.capacity}`, 20, yPos + 12);
+                yPos += 22;
+            });
+
+            doc.save(`brandweer_analyse_${currentAnalysisData.location.postcode}.pdf`);
+        }
+
+        function exportJSON() {
+            if (!currentAnalysisData) {
+                alert('Voer eerst een analyse uit');
+                return;
+            }
+
+            const dataStr = JSON.stringify(currentAnalysisData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `brandweer_data_${currentAnalysisData.location.postcode}.json`;
+            link.click();
+        }
+
+        function sendToAgent() {
+            if (!currentAnalysisData) {
+                alert('Voer eerst een analyse uit');
+                return;
+            }
+
+            // Simuleer verzending naar andere agent
+            console.log('Data verzonden naar andere agent:', currentAnalysisData);
+            alert('✅ Data succesvol verzonden naar andere agent!\n\nDe analyse resultaten zijn nu beschikbaar voor andere systemen.');
+        }
+
+        // PostMessage receiver (voor agent-to-agent communicatie)
+        window.addEventListener('message', (event) => {
+            // In productie: valideer event.origin!
+            if (event.data.type === 'LOCATION_DATA') {
+                const data = event.data.data;
+                document.getElementById('postcode').value = data.postcode || '';
+                document.getElementById('huisnummer').value = data.huisnummer || '';
+                
+                if (data.straatnaam) {
+                    document.getElementById('straatnaam').value = data.straatnaam;
+                }
+                if (data.plaats) {
+                    document.getElementById('plaats').value = data.plaats;
+                }
+                
+                // Auto-start analyse
+                analyzeLocation();
+            }
+        });
+
+        // Initialisatie
+        document.addEventListener('DOMContentLoaded', function() {
+            // Methode 1: Check URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const postcodeUrl = urlParams.get('postcode');
+            const huisnummerUrl = urlParams.get('huisnummer');
+            
+            if (postcodeUrl && huisnummerUrl) {
+                document.getElementById('postcode').value = postcodeUrl;
+                document.getElementById('huisnummer').value = huisnummerUrl;
+                analyzeLocation();
+                return;
+            }
+            
+            // Methode 2: Check LocalStorage
+            const storedData = localStorage.getItem('brandweerAgentInput');
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    document.getElementById('postcode').value = data.postcode || '';
+                    document.getElementById('huisnummer').value = data.huisnummer || '';
+                    
+                    if (data.straatnaam) {
+                        document.getElementById('straatnaam').value = data.straatnaam;
+                    }
+                    if (data.plaats) {
+                        document.getElementById('plaats').value = data.plaats;
+                    }
+                    
+                    // Cleanup
+                    localStorage.removeItem('brandweerAgentInput');
+                    
+                    // Auto-start analyse
+                    analyzeLocation();
+                } catch (e) {
+                    console.error('Error parsing localStorage data:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

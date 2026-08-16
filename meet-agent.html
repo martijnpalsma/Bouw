@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #6c757d;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-section h3 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="number"], select {
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-card h4 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .detail-value {
+            color: #6c757d;
+            font-weight: bold;
+        }
+
+        .visualization {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .shape-preview {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .formula-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span style="font-size: 2rem;">📏</span>
+                <span>Meet Agent</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="agent-platform.html" class="nav-link">🎯 Dashboard</a></li>
+                <li><a href="agent-workflow-builder.html" class="nav-link">🔄 Workflows</a></li>
+                <li><a href="meet-agent.html" class="nav-link active">📏 Meten</a></li>
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>📏 Meet Agent</h1>
+            <p>Bereken oppervlaktes, volumes en afmetingen voor bouwprojecten</p>
+        </div>
+
+        <div class="main-content">
+            <div class="alert alert-info">
+                <strong>ℹ️ Let op:</strong> Deze agent kan metingen ontvangen van andere agents of handmatig worden ingevoerd.
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('oppervlakte')">📐 Oppervlakte</button>
+                <button class="tab" onclick="switchTab('volume')">📦 Volume</button>
+                <button class="tab" onclick="switchTab('omtrek')">⭕ Omtrek</button>
+                <button class="tab" onclick="switchTab('complex')">🏗️ Complex</button>
+            </div>
+
+            <!-- Oppervlakte Tab -->
+            <div id="oppervlakte-tab" class="tab-content active">
+                <div class="input-section">
+                    <h3>📐 Oppervlakte Berekenen</h3>
+                    
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label for="shape">Vorm</label>
+                            <select id="shape" onchange="updateOppervlakteInputs()">
+                                <option value="rechthoek">Rechthoek</option>
+                                <option value="vierkant">Vierkant</option>
+                                <option value="cirkel">Cirkel</option>
+                                <option value="driehoek">Driehoek</option>
+                                <option value="trapezium">Trapezium</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="oppervlakte-inputs">
+                        <!-- Dynamisch gevuld -->
+                    </div>
+
+                    <button class="btn" onclick="calculateOppervlakte()">🧮 Bereken Oppervlakte</button>
+                </div>
+
+                <div class="results-section" id="oppervlakte-results">
+                    <!-- Resultaten -->
+                </div>
+            </div>
+
+            <!-- Volume Tab -->
+            <div id="volume-tab" class="tab-content">
+                <div class="input-section">
+                    <h3>📦 Volume Berekenen</h3>
+                    
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label for="volume-shape">3D Vorm</label>
+                            <select id="volume-shape" onchange="updateVolumeInputs()">
+                                <option value="kubus">Kubus</option>
+                                <option value="balk">Rechthoekige Balk</option>
+                                <option value="cilinder">Cilinder</option>
+                                <option value="piramide">Piramide</option>
+                                <option value="bol">Bol</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="volume-inputs">
+                        <!-- Dynamisch gevuld -->
+                    </div>
+
+                    <button class="btn" onclick="calculateVolume()">🧮 Bereken Volume</button>
+                </div>
+
+                <div class="results-section" id="volume-results">
+                    <!-- Resultaten -->
+                </div>
+            </div>
+
+            <!-- Omtrek Tab -->
+            <div id="omtrek-tab" class="tab-content">
+                <div class="input-section">
+                    <h3>⭕ Omtrek Berekenen</h3>
+                    
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label for="omtrek-shape">Vorm</label>
+                            <select id="omtrek-shape" onchange="updateOmtrekInputs()">
+                                <option value="rechthoek">Rechthoek</option>
+                                <option value="vierkant">Vierkant</option>
+                                <option value="cirkel">Cirkel</option>
+                                <option value="driehoek">Driehoek</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="omtrek-inputs">
+                        <!-- Dynamisch gevuld -->
+                    </div>
+
+                    <button class="btn" onclick="calculateOmtrek()">🧮 Bereken Omtrek</button>
+                </div>
+
+                <div class="results-section" id="omtrek-results">
+                    <!-- Resultaten -->
+                </div>
+            </div>
+
+            <!-- Complex Tab -->
+            <div id="complex-tab" class="tab-content">
+                <div class="input-section">
+                    <h3>🏗️ Complex Gebouw</h3>
+                    <p style="margin-bottom: 1rem; color: #6c757d;">Bereken totale oppervlakte en volume voor meerdere verdiepingen</p>
+                    
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label for="complex-width">Breedte (m)</label>
+                            <input type="number" id="complex-width" value="15" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="complex-length">Lengte (m)</label>
+                            <input type="number" id="complex-length" value="20" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="complex-floors">Verdiepingen</label>
+                            <input type="number" id="complex-floors" value="3" min="1">
+                        </div>
+                        <div class="input-field">
+                            <label for="complex-height">Verdiepingshoogte (m)</label>
+                            <input type="number" id="complex-height" value="3.2" step="0.1">
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="calculateComplex()">🧮 Bereken Totaal</button>
+                </div>
+
+                <div class="results-section" id="complex-results">
+                    <!-- Resultaten -->
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="receiveFromAgent()">📥 Ontvang van Agent</button>
+                <button class="btn btn-secondary" onclick="exportResults()">📤 Exporteer JSON</button>
+                <button class="btn btn-secondary" onclick="sendToNextAgent()">➡️ Naar Volgende Agent</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AGENT_CONFIG = {
+            id: 'meet-agent',
+            name: 'Meet Agent',
+            version: '1.0.0',
+            type: 'processing'
+        };
+
+        let calculationResults = null;
+        let currentTab = 'oppervlakte';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateOppervlakteInputs();
+            updateVolumeInputs();
+            updateOmtrekInputs();
+            setupAgentCommunication();
+        });
+
+        function setupAgentCommunication() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const width = urlParams.get('width');
+            const length = urlParams.get('length');
+            
+            if (width && length) {
+                switchTab('oppervlakte');
+                document.getElementById('shape').value = 'rechthoek';
+                updateOppervlakteInputs();
+                setTimeout(() => {
+                    document.getElementById('lengte').value = length;
+                    document.getElementById('breedte').value = width;
+                    calculateOppervlakte();
+                }, 100);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        function updateOppervlakteInputs() {
+            const shape = document.getElementById('shape').value;
+            const container = document.getElementById('oppervlakte-inputs');
+            
+            let html = '<div class="input-group">';
+            
+            switch(shape) {
+                case 'rechthoek':
+                    html += `
+                        <div class="input-field">
+                            <label for="lengte">Lengte (m)</label>
+                            <input type="number" id="lengte" value="10" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="breedte">Breedte (m)</label>
+                            <input type="number" id="breedte" value="8" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'vierkant':
+                    html += `
+                        <div class="input-field">
+                            <label for="zijde">Zijde (m)</label>
+                            <input type="number" id="zijde" value="10" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'cirkel':
+                    html += `
+                        <div class="input-field">
+                            <label for="straal">Straal (m)</label>
+                            <input type="number" id="straal" value="5" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'driehoek':
+                    html += `
+                        <div class="input-field">
+                            <label for="basis">Basis (m)</label>
+                            <input type="number" id="basis" value="10" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="hoogte">Hoogte (m)</label>
+                            <input type="number" id="hoogte" value="8" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'trapezium':
+                    html += `
+                        <div class="input-field">
+                            <label for="zijde-a">Zijde A (m)</label>
+                            <input type="number" id="zijde-a" value="10" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="zijde-b">Zijde B (m)</label>
+                            <input type="number" id="zijde-b" value="6" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="hoogte-trap">Hoogte (m)</label>
+                            <input type="number" id="hoogte-trap" value="5" step="0.1">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function updateVolumeInputs() {
+            const shape = document.getElementById('volume-shape').value;
+            const container = document.getElementById('volume-inputs');
+            
+            let html = '<div class="input-group">';
+            
+            switch(shape) {
+                case 'kubus':
+                    html += `
+                        <div class="input-field">
+                            <label for="kubus-zijde">Zijde (m)</label>
+                            <input type="number" id="kubus-zijde" value="5" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'balk':
+                    html += `
+                        <div class="input-field">
+                            <label for="balk-lengte">Lengte (m)</label>
+                            <input type="number" id="balk-lengte" value="10" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="balk-breedte">Breedte (m)</label>
+                            <input type="number" id="balk-breedte" value="8" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="balk-hoogte">Hoogte (m)</label>
+                            <input type="number" id="balk-hoogte" value="3" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'cilinder':
+                    html += `
+                        <div class="input-field">
+                            <label for="cil-straal">Straal (m)</label>
+                            <input type="number" id="cil-straal" value="3" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="cil-hoogte">Hoogte (m)</label>
+                            <input type="number" id="cil-hoogte" value="10" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'piramide':
+                    html += `
+                        <div class="input-field">
+                            <label for="pir-basis">Basis (m)</label>
+                            <input type="number" id="pir-basis" value="10" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="pir-hoogte">Hoogte (m)</label>
+                            <input type="number" id="pir-hoogte" value="12" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'bol':
+                    html += `
+                        <div class="input-field">
+                            <label for="bol-straal">Straal (m)</label>
+                            <input type="number" id="bol-straal" value="5" step="0.1">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function updateOmtrekInputs() {
+            const shape = document.getElementById('omtrek-shape').value;
+            const container = document.getElementById('omtrek-inputs');
+            
+            let html = '<div class="input-group">';
+            
+            switch(shape) {
+                case 'rechthoek':
+                    html += `
+                        <div class="input-field">
+                            <label for="om-lengte">Lengte (m)</label>
+                            <input type="number" id="om-lengte" value="10" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="om-breedte">Breedte (m)</label>
+                            <input type="number" id="om-breedte" value="8" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'vierkant':
+                    html += `
+                        <div class="input-field">
+                            <label for="om-zijde">Zijde (m)</label>
+                            <input type="number" id="om-zijde" value="10" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'cirkel':
+                    html += `
+                        <div class="input-field">
+                            <label for="om-straal">Straal (m)</label>
+                            <input type="number" id="om-straal" value="5" step="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'driehoek':
+                    html += `
+                        <div class="input-field">
+                            <label for="om-a">Zijde A (m)</label>
+                            <input type="number" id="om-a" value="5" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="om-b">Zijde B (m)</label>
+                            <input type="number" id="om-b" value="6" step="0.1">
+                        </div>
+                        <div class="input-field">
+                            <label for="om-c">Zijde C (m)</label>
+                            <input type="number" id="om-c" value="7" step="0.1">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function calculateOppervlakte() {
+            const shape = document.getElementById('shape').value;
+            let area, formula;
+            
+            switch(shape) {
+                case 'rechthoek':
+                    const lengte = parseFloat(document.getElementById('lengte').value);
+                    const breedte = parseFloat(document.getElementById('breedte').value);
+                    area = lengte * breedte;
+                    formula = `Oppervlakte = lengte × breedte = ${lengte}m × ${breedte}m = ${area.toFixed(2)}m²`;
+                    break;
+                case 'vierkant':
+                    const zijde = parseFloat(document.getElementById('zijde').value);
+                    area = zijde * zijde;
+                    formula = `Oppervlakte = zijde² = ${zijde}² = ${area.toFixed(2)}m²`;
+                    break;
+                case 'cirkel':
+                    const straal = parseFloat(document.getElementById('straal').value);
+                    area = Math.PI * straal * straal;
+                    formula = `Oppervlakte = π × straal² = π × ${straal}² = ${area.toFixed(2)}m²`;
+                    break;
+                case 'driehoek':
+                    const basis = parseFloat(document.getElementById('basis').value);
+                    const hoogte = parseFloat(document.getElementById('hoogte').value);
+                    area = (basis * hoogte) / 2;
+                    formula = `Oppervlakte = (basis × hoogte) / 2 = (${basis}m × ${hoogte}m) / 2 = ${area.toFixed(2)}m²`;
+                    break;
+                case 'trapezium':
+                    const a = parseFloat(document.getElementById('zijde-a').value);
+                    const b = parseFloat(document.getElementById('zijde-b').value);
+                    const h = parseFloat(document.getElementById('hoogte-trap').value);
+                    area = ((a + b) / 2) * h;
+                    formula = `Oppervlakte = ((a + b) / 2) × h = ((${a} + ${b}) / 2) × ${h} = ${area.toFixed(2)}m²`;
+                    break;
+            }
+
+            displayOppervlakteResults(area, shape, formula);
+        }
+
+        function displayOppervlakteResults(area, shape, formula) {
+            const container = document.getElementById('oppervlakte-results');
+            
+            const perimeter = calculatePerimeterForShape(shape);
+            const tileCount = Math.ceil(area / 0.5);
+            const paintLiters = (area * 0.1).toFixed(2);
+            
+            container.innerHTML = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Oppervlakte</div>
+                        <div class="result-value">${area.toFixed(2)} m²</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Omtrek</div>
+                        <div class="result-value">${perimeter.toFixed(2)} m</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Tegels Nodig</div>
+                        <div class="result-value">${tileCount}</div>
+                        <div class="result-label">(50×50cm)</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Verf Nodig</div>
+                        <div class="result-value">${paintLiters}L</div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h4>Berekening Details</h4>
+                    <div class="formula-box">${formula}</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Vorm</span>
+                        <span class="detail-value">${shape.charAt(0).toUpperCase() + shape.slice(1)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Berekend Op</span>
+                        <span class="detail-value">${new Date().toLocaleString('nl-NL')}</span>
+                    </div>
+                </div>
+
+                <div class="visualization">
+                    <div class="shape-preview">${getShapeIcon(shape)}</div>
+                </div>
+            `;
+
+            container.style.display = 'block';
+            
+            calculationResults = {
+                type: 'oppervlakte',
+                shape: shape,
+                area: area,
+                perimeter: perimeter,
+                formula: formula
+            };
+        }
+
+        function calculateVolume() {
+            const shape = document.getElementById('volume-shape').value;
+            let volume, formula;
+            
+            switch(shape) {
+                case 'kubus':
+                    const kubusZijde = parseFloat(document.getElementById('kubus-zijde').value);
+                    volume = Math.pow(kubusZijde, 3);
+                    formula = `Volume = zijde³ = ${kubusZijde}³ = ${volume.toFixed(2)}m³`;
+                    break;
+                case 'balk':
+                    const balkL = parseFloat(document.getElementById('balk-lengte').value);
+                    const balkB = parseFloat(document.getElementById('balk-breedte').value);
+                    const balkH = parseFloat(document.getElementById('balk-hoogte').value);
+                    volume = balkL * balkB * balkH;
+                    formula = `Volume = l × b × h = ${balkL} × ${balkB} × ${balkH} = ${volume.toFixed(2)}m³`;
+                    break;
+                case 'cilinder':
+                    const cilStraal = parseFloat(document.getElementById('cil-straal').value);
+                    const cilHoogte = parseFloat(document.getElementById('cil-hoogte').value);
+                    volume = Math.PI * Math.pow(cilStraal, 2) * cilHoogte;
+                    formula = `Volume = π × r² × h = π × ${cilStraal}² × ${cilHoogte} = ${volume.toFixed(2)}m³`;
+                    break;
+                case 'piramide':
+                    const pirBasis = parseFloat(document.getElementById('pir-basis').value);
+                    const pirHoogte = parseFloat(document.getElementById('pir-hoogte').value);
+                    volume = (Math.pow(pirBasis, 2) * pirHoogte) / 3;
+                    formula = `Volume = (basis² × h) / 3 = (${pirBasis}² × ${pirHoogte}) / 3 = ${volume.toFixed(2)}m³`;
+                    break;
+                case 'bol':
+                    const bolStraal = parseFloat(document.getElementById('bol-straal').value);
+                    volume = (4/3) * Math.PI * Math.pow(bolStraal, 3);
+                    formula = `Volume = (4/3) × π × r³ = (4/3) × π × ${bolStraal}³ = ${volume.toFixed(2)}m³`;
+                    break;
+            }
+
+            displayVolumeResults(volume, shape, formula);
+        }
+
+        function displayVolumeResults(volume, shape, formula) {
+            const container = document.getElementById('volume-results');
+            
+            const weightConcrete = (volume * 2400).toFixed(0);
+            const trucks = Math.ceil(volume / 8);
+            const cost = (volume * 450).toFixed(2);
+            
+            container.innerHTML = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Volume</div>
+                        <div class="result-value">${volume.toFixed(2)} m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Gewicht Beton</div>
+                        <div class="result-value">${parseInt(weightConcrete).toLocaleString()}</div>
+                        <div class="result-label">kg</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Betonwagens</div>
+                        <div class="result-value">${trucks}</div>
+                        <div class="result-label">stuks</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Geschatte Kosten</div>
+                        <div class="result-value">€ ${parseFloat(cost).toLocaleString('nl-NL')}</div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h4>Berekening Details</h4>
+                    <div class="formula-box">${formula}</div>
+                    <div class="detail-row">
+                        <span class="detail-label">3D Vorm</span>
+                        <span class="detail-value">${shape.charAt(0).toUpperCase() + shape.slice(1)}</span>
+                    </div>
+                </div>
+
+                <div class="visualization">
+                    <div class="shape-preview">${getVolumeIcon(shape)}</div>
+                </div>
+            `;
+
+            container.style.display = 'block';
+            
+            calculationResults = {
+                type: 'volume',
+                shape: shape,
+                volume: volume,
+                formula: formula
+            };
+        }
+
+        function calculateOmtrek() {
+            const shape = document.getElementById('omtrek-shape').value;
+            let perimeter, formula;
+            
+            switch(shape) {
+                case 'rechthoek':
+                    const l = parseFloat(document.getElementById('om-lengte').value);
+                    const b = parseFloat(document.getElementById('om-breedte').value);
+                    perimeter = 2 * (l + b);
+                    formula = `Omtrek = 2 × (l + b) = 2 × (${l} + ${b}) = ${perimeter.toFixed(2)}m`;
+                    break;
+                case 'vierkant':
+                    const z = parseFloat(document.getElementById('om-zijde').value);
+                    perimeter = 4 * z;
+                    formula = `Omtrek = 4 × zijde = 4 × ${z} = ${perimeter.toFixed(2)}m`;
+                    break;
+                case 'cirkel':
+                    const r = parseFloat(document.getElementById('om-straal').value);
+                    perimeter = 2 * Math.PI * r;
+                    formula = `Omtrek = 2 × π × r = 2 × π × ${r} = ${perimeter.toFixed(2)}m`;
+                    break;
+                case 'driehoek':
+                    const a = parseFloat(document.getElementById('om-a').value);
+                    const b2 = parseFloat(document.getElementById('om-b').value);
+                    const c = parseFloat(document.getElementById('om-c').value);
+                    perimeter = a + b2 + c;
+                    formula = `Omtrek = a + b + c = ${a} + ${b2} + ${c} = ${perimeter.toFixed(2)}m`;
+                    break;
+            }
+
+            displayOmtrekResults(perimeter, shape, formula);
+        }
+
+        function displayOmtrekResults(perimeter, shape, formula) {
+            const container = document.getElementById('omtrek-results');
+            
+            const fencing = Math.ceil(perimeter / 2);
+            const posts = Math.ceil(perimeter / 3) + 1;
+            
+            container.innerHTML = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Omtrek</div>
+                        <div class="result-value">${perimeter.toFixed(2)} m</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Hekwerk</div>
+                        <div class="result-value">${fencing}</div>
+                        <div class="result-label">panelen (2m)</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Palen Nodig</div>
+                        <div class="result-value">${posts}</div>
+                        <div class="result-label">stuks</div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h4>Berekening Details</h4>
+                    <div class="formula-box">${formula}</div>
+                </div>
+            `;
+
+            container.style.display = 'block';
+        }
+
+        function calculateComplex() {
+            const width = parseFloat(document.getElementById('complex-width').value);
+            const length = parseFloat(document.getElementById('complex-length').value);
+            const floors = parseInt(document.getElementById('complex-floors').value);
+            const height = parseFloat(document.getElementById('complex-height').value);
+
+            const floorArea = width * length;
+            const totalArea = floorArea * floors;
+            const totalVolume = floorArea * height * floors;
+            const wallArea = 2 * (width + length) * height * floors;
+
+            displayComplexResults(floorArea, totalArea, totalVolume, wallArea, floors);
+        }
+
+        function displayComplexResults(floorArea, totalArea, totalVolume, wallArea, floors) {
+            const container = document.getElementById('complex-results');
+            
+            container.innerHTML = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-label">Vloer Oppervlak</div>
+                        <div class="result-value">${floorArea.toFixed(2)} m²</div>
+                        <div class="result-label">per verdieping</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Totaal Oppervlak</div>
+                        <div class="result-value">${totalArea.toFixed(2)} m²</div>
+                        <div class="result-label">${floors} verdiepingen</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Totaal Volume</div>
+                        <div class="result-value">${totalVolume.toFixed(2)} m³</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">Gevel Oppervlak</div>
+                        <div class="result-value">${wallArea.toFixed(2)} m²</div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h4>Materiaal Schattingen</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Vloertegels (60×60cm)</span>
+                        <span class="detail-value">${Math.ceil(totalArea / 0.36)} stuks</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Gevelstenen</span>
+                        <span class="detail-value">${Math.ceil(wallArea * 50)} stuks</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Beton Fundering</span>
+                        <span class="detail-value">${(floorArea * 0.3).toFixed(2)} m³</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Isolatiemateriaal</span>
+                        <span class="detail-value">${(totalArea * 1.5).toFixed(2)} m²</span>
+                    </div>
+                </div>
+            `;
+
+            container.style.display = 'block';
+            
+            calculationResults = {
+                type: 'complex',
+                floorArea: floorArea,
+                totalArea: totalArea,
+                totalVolume: totalVolume,
+                wallArea: wallArea,
+                floors: floors
+            };
+        }
+
+        function calculatePerimeterForShape(shape) {
+            switch(shape) {
+                case 'rechthoek':
+                    const l = parseFloat(document.getElementById('lengte').value);
+                    const b = parseFloat(document.getElementById('breedte').value);
+                    return 2 * (l + b);
+                case 'vierkant':
+                    const z = parseFloat(document.getElementById('zijde').value);
+                    return 4 * z;
+                case 'cirkel':
+                    const r = parseFloat(document.getElementById('straal').value);
+                    return 2 * Math.PI * r;
+                default:
+                    return 0;
+            }
+        }
+
+        function getShapeIcon(shape) {
+            const icons = {
+                'rechthoek': '▭',
+                'vierkant': '◻',
+                'cirkel': '○',
+                'driehoek': '△',
+                'trapezium': '⬠'
+            };
+            return icons[shape] || '◇';
+        }
+
+        function getVolumeIcon(shape) {
+            const icons = {
+                'kubus': '◻',
+                'balk': '▭',
+                'cilinder': '○',
+                'piramide': '△',
+                'bol': '●'
+            };
+            return icons[shape] || '◇';
+        }
+
+        function receiveFromAgent() {
+            const demoData = {
+                width: 15,
+                length: 20,
+                floors: 3
+            };
+
+            document.getElementById('complex-width').value = demoData.width;
+            document.getElementById('complex-length').value = demoData.length;
+            document.getElementById('complex-floors').value = demoData.floors;
+
+            switchTab('complex');
+            document.querySelector('.tab:nth-child(4)').classList.add('active');
+            document.getElementById('complex-tab').classList.add('active');
+
+            alert('✅ Data ontvangen van andere agent (demo)');
+        }
+
+        function exportResults() {
+            if (!calculationResults) {
+                alert('Voer eerst een berekening uit');
+                return;
+            }
+
+            const dataStr = JSON.stringify(calculationResults, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `metingen_${Date.now()}.json`;
+            link.click();
+        }
+
+        function sendToNextAgent() {
+            if (!calculationResults) {
+                alert('Voer eerst een berekening uit');
+                return;
+            }
+
+            localStorage.setItem('next-agent-input', JSON.stringify(calculationResults));
+            
+            const nextAgent = prompt('Naar welke agent? (bijv. gebouwmaterialen-agent.html)');
+            if (nextAgent) {
+                window.location.href = nextAgent;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gebouw Foto Analyse - AI Powered</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #4a90e2;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .logo-text {
+            background: linear-gradient(45deg, #ffffff, #e8f4fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section, .analysis-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-zone {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8f9fa;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: #764ba2;
+            background: #f0f0ff;
+            transform: scale(1.02);
+        }
+
+        .upload-zone.dragover {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 1.5rem;
+            max-width: 100%;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .analysis-result {
+            display: none;
+        }
+
+        .analysis-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .analysis-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .analysis-item {
+            margin-bottom: 0.8rem;
+            padding-left: 1rem;
+        }
+
+        .analysis-item strong {
+            color: #2c3e50;
+        }
+
+        .material-list, .question-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .material-list li, .question-list li {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #764ba2;
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+            border: 2px solid #ff9800;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .question-card h3 {
+            color: #e65100;
+            margin-bottom: 1rem;
+        }
+
+        .question-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ff9800;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+
+        .badge-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-menu {
+                gap: 0.75rem;
+            }
+            
+            .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-nav">
+        <nav class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🏗️</span>
+                <span class="logo-text">Bouw Informatie Systeem</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">🏠 Home</a></li>
+                <li><a href="gebouw-formulier.html" class="nav-link">📋 Formulier</a></li>
+                <li><a href="foto-analyse.html" class="nav-link active">📸 Foto Analyse</a></li>
+                <li><a href="bouw-informatie-systeem.html" class="nav-link">📊 Systeem</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="header">
+            <h1>📸 AI Gebouw Foto Analyse</h1>
+            <p>Upload foto's van een gebouw voor complete analyse van constructie, materialen en isolatie</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Upload Sectie -->
+            <div class="upload-section">
+                <h2 class="section-title">
+                    <span>📤</span>
+                    Upload Gebouwfoto
+                </h2>
+
+                <div id="uploadZone" class="upload-zone">
+                    <div class="upload-icon">🏢</div>
+                    <div class="upload-text">Sleep een foto hierheen of klik om te uploaden</div>
+                    <div class="upload-hint">Ondersteund: JPG, PNG, GIF, WebP (max 10MB)</div>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+
+                <div id="imagePreview" class="image-preview">
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+
+                <button id="analyzeBtn" class="btn" disabled>
+                    🔍 Analyseer Gebouw
+                </button>
+
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>AI analyseert de foto...</p>
+                </div>
+
+                <div id="errorMessage"></div>
+            </div>
+
+            <!-- Analyse Resultaten Sectie -->
+            <div class="analysis-section">
+                <h2 class="section-title">
+                    <span>📊</span>
+                    Analyse Resultaten
+                </h2>
+
+                <div id="analysisPlaceholder">
+                    <div class="alert alert-info">
+                        Upload een gebouwfoto om de AI-analyse te starten. Het systeem zal automatisch de constructie, materialen en isolatie analyseren.
+                    </div>
+                </div>
+
+                <div id="analysisResult" class="analysis-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const analysisResult = document.getElementById('analysisResult');
+        const analysisPlaceholder = document.getElementById('analysisPlaceholder');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let currentFile = null;
+        let currentFilename = null;
+        let conversationHistory = [];
+
+        // Upload zone click
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        });
+
+        function handleFile(file) {
+            currentFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+                analyzeBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Analyze button
+        analyzeBtn.addEventListener('click', async () => {
+            if (!currentFile) return;
+
+            analyzeBtn.disabled = true;
+            loading.style.display = 'block';
+            errorMessage.innerHTML = '';
+            analysisResult.innerHTML = '';
+            conversationHistory = [];
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    currentFilename = data.filename;
+                    displayAnalysis(data);
+                }
+            } catch (error) {
+                showError('Er is een fout opgetreden: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        function showError(message) {
+            errorMessage.innerHTML = `
+                <div class="alert alert-error">
+                    <strong>⚠️ Fout:</strong> ${message}
+                </div>
+            `;
+        }
+
+        function displayAnalysis(data) {
+            analysisPlaceholder.style.display = 'none';
+            analysisResult.style.display = 'block';
+
+            const analysis = data.analysis;
+            
+            if (data.demo_response) {
+                analysisResult.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Demo Mode:</strong> OpenAI API key is niet geconfigureerd. Dit is een voorbeeld analyse. 
+                        Configureer OPENAI_API_KEY als environment variable voor echte AI analyse.
+                    </div>
+                `;
+            }
+
+            let html = '';
+
+            // Constructie
+            if (analysis.constructie) {
+                html += `
+                    <div class="analysis-card">
+                        <h3>🏗️ Constructie</h3>
+                        ${formatObject(analysis.constructie)}
+                    </div>
+                `;
+            }
+
+            // Materialen
+            if (analysis.materialen) {
+                html += `
+                    <div class="analysis-card">
+                        <h3>🧱 Materialen</h3>
+                        ${formatObject(analysis.materialen)}
+                    </div>
+                `;
+            }
+
+            // Isolatie
+            if (analysis.isolatie) {
+                html += `
+                    <div class="analysis-card">
+                        <h3>🌡️ Isolatie</h3>
+                        ${formatObject(analysis.isolatie)}
+                    </div>
+                `;
+            }
+
+            // Staat
+            if (analysis.staat) {
+                html += `
+                    <div class="analysis-card">
+                        <h3>📋 Staat van het Gebouw</h3>
+                        ${formatObject(analysis.staat)}
+                    </div>
+                `;
+            }
+
+            // Bouwperiode
+            if (analysis.bouwperiode) {
+                html += `
+                    <div class="analysis-card">
+                        <h3>📅 Bouwperiode</h3>
+                        ${formatObject(analysis.bouwperiode)}
+                    </div>
+                `;
+            }
+
+            // Betrouwbaarheid
+            if (analysis.betrouwbaarheid) {
+                const badgeClass = analysis.betrouwbaarheid === 'hoog' ? 'badge-high' : 
+                                 analysis.betrouwbaarheid === 'middel' ? 'badge-medium' : 'badge-low';
+                html += `
+                    <div class="analysis-item">
+                        <strong>🎯 Betrouwbaarheid:</strong>
+                        <span class="badge ${badgeClass}">${analysis.betrouwbaarheid.toUpperCase()}</span>
+                    </div>
+                `;
+            }
+
+            // Conclusie
+            if (analysis.conclusie) {
+                html += `
+                    <div class="analysis-card">
+                        <h3>✅ Conclusie</h3>
+                        <p>${analysis.conclusie}</p>
+                    </div>
+                `;
+            }
+
+            analysisResult.innerHTML = html;
+
+            // Verduidelijkingsvragen
+            if (analysis.verduidelijkingsvragen && analysis.verduidelijkingsvragen.length > 0) {
+                displayQuestions(analysis.verduidelijkingsvragen);
+            }
+        }
+
+        function formatObject(obj) {
+            let html = '<div class="analysis-item">';
+            
+            for (const [key, value] of Object.entries(obj)) {
+                if (Array.isArray(value)) {
+                    html += `<strong>${capitalizeFirst(key)}:</strong>
+                            <ul class="material-list">`;
+                    value.forEach(item => {
+                        html += `<li>${item}</li>`;
+                    });
+                    html += '</ul>';
+                } else if (typeof value === 'object') {
+                    html += `<strong>${capitalizeFirst(key)}:</strong>
+                            ${formatObject(value)}`;
+                } else {
+                    html += `<strong>${capitalizeFirst(key)}:</strong> ${value}<br>`;
+                }
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function displayQuestions(questions) {
+            let html = `
+                <div class="question-card">
+                    <h3>❓ Verduidelijkingsvragen</h3>
+                    <p>De AI heeft enkele vragen om de analyse te verfijnen:</p>
+                    <ul class="question-list">
+            `;
+
+            questions.forEach((q, index) => {
+                html += `
+                    <li>
+                        <strong>${q.vraag}</strong><br>
+                        <small style="color: #666;">Reden: ${q.reden}</small>
+                    </li>
+                `;
+            });
+
+            html += `
+                    </ul>
+                    <textarea id="answerInput" class="question-input" 
+                              placeholder="Beantwoord de vragen hier..." rows="4"></textarea>
+                    <button id="submitAnswerBtn" class="btn">📨 Verstuur Antwoord</button>
+                </div>
+            `;
+
+            analysisResult.innerHTML += html;
+
+            document.getElementById('submitAnswerBtn').addEventListener('click', submitAnswer);
+        }
+
+        async function submitAnswer() {
+            const answer = document.getElementById('answerInput').value.trim();
+            
+            if (!answer) {
+                alert('Vul alstublieft een antwoord in.');
+                return;
+            }
+
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/clarify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: currentFilename,
+                        answer: answer,
+                        conversation_history: conversationHistory
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    conversationHistory = data.conversation_history || [];
+                    displayAnalysis(data);
+                }
+            } catch (error) {
+                showError('Er is een fout opgetreden: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function capitalizeFirst(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ');
+        }
+    </script>
+</body>
+</html>

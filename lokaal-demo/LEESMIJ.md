@@ -1,41 +1,53 @@
-# Lokale RisicoScan — zo open je het nu
+# Lokale RisicoScan — volledig voor taxateur / risicodeskundige
 
-Dit is **alleen lokaal**. Niets wordt gepubliceerd naar een website.
+**Alleen lokaal.** Niets wordt gepubliceerd.
 
-## Op computer
+## Starten
 
 ```bash
 cd lokaal-demo
 ./START-LOKAAL.sh
 ```
 
-Open in browser: **http://localhost:8765**
+- Computer: http://localhost:8765  
+- iPhone/iPad (zelfde wifi): `http://JOUW-IP:8765`
 
-Of dubbelklik `index.html`.
+Optioneel Flask-API (zelfde analyses + GPT-foto):
 
-## Op iPhone / iPad (zelfde wifi)
+```bash
+cd ..
+python3 app.py
+# POST /api/locatie  POST /api/risico  POST /api/upload
+```
 
-1. Start `./START-LOKAAL.sh` op je computer.
-2. Noteer het IP dat in de terminal staat (bijv. `192.168.1.42`).
-3. Open op je telefoon: `http://JOUW-IP:8765`
+## Wat erin zit (noodzakelijk voor risicodeskundige)
 
-## Wat zit erin
+### Live open data
+| Bron | Wat |
+|------|-----|
+| **PDOK Locatieserver** | Adres, buurt, wijk, gemeente, waterschap, perceel |
+| **PDOK BAG WFS** | Bouwjaar, status, gebruiksdoel, oppervlakte, # VBO’s |
+| **OSM/Nominatim** | Brandweerkazernes in de buurt |
+| **Curated NL-kazernes** | Aanvulling waar OSM dun is (o.a. Amsterdam centrum) |
 
-- Foto-upload (of demo zonder foto)
-- Constructie / materialen / isolatie
-- Brandweer: kazerne, opkomsttijd, materieel, watervoorziening
-- Taxateur-checklist (RiskWalk-onderwerpen)
-- Verduidelijkingsvragen zoals een risicodeskundige stelt
+### Schatting / inspectie
+| Onderdeel | Status |
+|-----------|--------|
+| Bluswater / hydranten | Schatting + checklist (geen betrouwbare open hydrant-API) |
+| Opkomsttijd | Berekend uit afstand + uitruk (beroeps/vrijwilligers) |
+| GPT Vision foto | Optioneel via Flask + OpenAI key |
 
-## Status van de “APIs”
+### RiskWalk-checklist (24 onderwerpen)
+Bedrijfsactiviteiten, gebouwen, constructie, gevel/dak, compartimentering, elektra, verwarming, branddetectie, blusmiddelen, huishouding, roken/open vuur, accu’s/laden, gevaarlijke stoffen, machines, opslag, buitenopslag, inbraak, water, storm, bedrijfsschade, brandweer/repressie, ontruiming/BHV, dak/PV, sandwichpanelen.
 
-| Bron | Status |
-|------|--------|
-| Brandweer opkomst / water | Demo-logica (zelfde als brandweer-agent) — **nog geen live landelijke API** |
-| BAG / PDOK | Nog niet live gekoppeld |
-| GPT-4 Vision | Alleen via `python app.py` + OpenAI key |
-| Taxateur-checklist | Lokaal meegeleverd |
+Plus functie-specifieke vragen (horeca, hotel, zorg, warehouse, garage, …).
+
+### Output
+- Risicoscore + niveau  
+- Taxatie-aandacht (premie-drivers)  
+- Prioriteitsvragen + antwoorden → verfijning  
+- JSON-export  
 
 ## Screenshots
 
-Zie `screenshots/` in deze map.
+Zie `screenshots/` en `/opt/cursor/artifacts/risicoscan-v2-*.png`.

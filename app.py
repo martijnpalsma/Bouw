@@ -268,8 +268,70 @@ def health():
     return jsonify({
         'status': 'healthy',
         'api_configured': bool(openai.api_key),
+        'opendata': True,
         'timestamp': datetime.now().isoformat()
     }), 200
+
+
+@app.route('/api/locatie', methods=['GET', 'POST'])
+def api_locatie():
+    """BAG/PDOK adres + pand + brandweer (OSM) + waterschatting."""
+    try:
+        if request.method == 'POST':
+            data = request.json or {}
+            postcode = data.get('postcode', '')
+            huisnummer = data.get('huisnummer', '')
+        else:
+            postcode = request.args.get('postcode', '')
+            huisnummer = request.args.get('huisnummer', '')
+
+        if not postcode:
+            return jsonify({'error': 'postcode verplicht'}), 400
+
+        from services.opendata_nl import volledige_locatie_analyse
+        result = volledige_locatie_analyse(postcode, huisnummer)
+        result['success'] = True
+        result['timestamp'] = datetime.now().isoformat()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/risico', methods=['POST'])
+def api_risico():
+    """
+    Combineer locatie-open-data met risicodeskundige checklist.
+    Body: { postcode, huisnummer, functie, antwoorden?, foto_hints? }
+    """
+    try:
+        data = request.json or {}
+        postcode = data.get('postcode', '')
+        huisnummer = data.get('huisnummer', '')
+        functie = data.get('functie', 'Winkel')
+        antwoorden = data.get('antwoorden') or {}
+        foto_hints = data.get('foto_hints')
+
+        if not postcode:
+            return jsonify({'error': 'postcode verplicht'}), 400
+
+        from services.opendata_nl import volledige_locatie_analyse
+        from services.risk_engine import build_report, demo_foto_hints
+
+        loc = volledige_locatie_analyse(postcode, huisnummer)
+        hints = foto_hints or demo_foto_hints(functie)
+        report = build_report(
+            locatie=loc.get('locatie'),
+            pand=loc.get('pand') if isinstance(loc.get('pand'), dict) and 'error' not in (loc.get('pand') or {}) else None,
+            brandweer=[s for s in (loc.get('brandweer') or []) if isinstance(s, dict) and 'error' not in s],
+            water=loc.get('water'),
+            functie=functie,
+            foto_hints=hints,
+            antwoorden=antwoorden,
+        )
+        return jsonify({'success': True, 'report': report, 'opendata': loc}), 200
+    except Exception as e:
+        return jsonify({'error': str(e), 'success': False}), 500
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

@@ -55,6 +55,14 @@ Dit systeem biedt een complete agent orchestration platform waar je meerdere age
 **Inputs**: gebouwData, brandweerData  
 **Outputs**: rapport, pdf
 
+### 4. AI Foto Analyse Agent
+**Type**: AI Analysis Agent  
+**Functie**: Analyseert gebouwfoto's met GPT-4 Vision voor constructie, materialen en isolatie  
+**Inputs**: gebouwfoto (JPG, PNG, GIF, WebP)  
+**Outputs**: constructie, materialen, isolatie, staat, bouwperiode, verduidelijkingsvragen  
+**Backend**: Flask REST API met OpenAI GPT-4o integratie  
+**Documentatie**: Zie [FOTO_ANALYSE_README.md](FOTO_ANALYSE_README.md), [QUICKSTART.md](QUICKSTART.md), [API_TESTING.md](API_TESTING.md)
+
 ## 🔄 Agent Communicatie
 
 Het platform ondersteunt drie methoden voor agent-to-agent communicatie:
@@ -101,8 +109,17 @@ targetWindow.postMessage({
 ├── gebouw-formulier.html              # Gebouw formulier agent
 ├── brandweer-watervoorziening.html    # Brandweer agent
 ├── bouw-informatie-systeem.html       # Bouw systeem agent
+├── foto-analyse.html                   # AI Foto analyse agent (frontend)
+│
+├── app.py                              # Flask backend voor foto analyse
+├── requirements.txt                    # Python dependencies
+├── start.sh / start.bat               # Startup scripts voor Flask API
+├── uploads/                            # Upload directory voor foto's
 │
 ├── README.md                           # Deze documentatie
+├── FOTO_ANALYSE_README.md             # Foto analyse agent documentatie
+├── QUICKSTART.md                       # Quick start voor foto analyse
+├── API_TESTING.md                      # API testing guide
 ├── AGENT_DEVELOPER_GUIDE.md           # Developer guide
 └── API_INTEGRATION.md                  # API integratie guide
 ```
@@ -110,6 +127,28 @@ targetWindow.postMessage({
 ### iOS-app (RiskWalk)
 
 Open `RiskWalk/RiskWalk.xcodeproj` in Xcode. Privacy- en securitymaatregelen staan in `RiskWalk/PRIVACY_SECURITY.md`.
+
+### AI Foto Analyse Agent
+
+Deze agent vereist een Python backend:
+
+```bash
+# Installeer dependencies
+pip install -r requirements.txt
+
+# Configureer API key (optioneel - werkt ook in demo mode)
+cp .env.example .env
+# Bewerk .env en voeg OPENAI_API_KEY toe
+
+# Start de server
+./start.sh  # Linux/Mac
+start.bat   # Windows
+
+# Of direct:
+python app.py
+```
+
+Server draait op `http://localhost:5000`. Zie [FOTO_ANALYSE_README.md](FOTO_ANALYSE_README.md) voor details.
 
 ## 🎯 Quick Start
 
@@ -291,7 +330,8 @@ const workflow = JSON.parse(localStorage.getItem('currentWorkflow'));
 
 1. Clone de repository
 2. Open `index.html` in een browser
-3. Geen build process nodig - pure HTML/CSS/JS
+3. Geen build process nodig voor web agents - pure HTML/CSS/JS
+4. Voor AI Foto Analyse Agent: start Python backend (zie hierboven)
 
 ### Productie Deployment
 
@@ -301,6 +341,7 @@ Voor productie gebruik:
 - Implementeer API integraties (zie `API_INTEGRATION.md`)
 - Setup monitoring en logging
 - Configureer backup strategie
+- Voor AI agent: deploy Flask app op productie server
 
 ## 📈 Performance
 
@@ -327,6 +368,8 @@ monitor.end(marker);
 - CSRF tokens voor forms
 - Origin validatie bij PostMessage
 - Geen sensitive data in LocalStorage
+- API keys in environment variables (voor AI agent)
+- Secure file upload validatie
 
 ## 📱 Browser Support
 
@@ -360,6 +403,9 @@ Gebruik GitHub Issues met:
 - **README.md** - Deze file: Algemeen overzicht
 - **AGENT_DEVELOPER_GUIDE.md** - Complete developer guide
 - **API_INTEGRATION.md** - API integratie documentatie
+- **FOTO_ANALYSE_README.md** - AI Foto Analyse Agent (volledig)
+- **QUICKSTART.md** - Quick start guide voor foto analyse
+- **API_TESTING.md** - API testing voorbeelden
 - **agent-integratie-voorbeeld.html** - Live code voorbeelden
 
 ## 🎓 Tutorials
@@ -378,8 +424,9 @@ Gebruik GitHub Issues met:
 2. Sleep "Gebouw Formulier" naar canvas
 3. Sleep "Brandweer Agent" naar canvas
 4. Sleep "Bouw Systeem" naar canvas
-5. Save workflow
-6. Test uitvoering
+5. Verbind de agents
+6. Save workflow
+7. Test uitvoering
 
 ### Tutorial 3: Agents Koppelen
 
@@ -394,6 +441,15 @@ function sendToAgentB(data) {
 const input = JSON.parse(localStorage.getItem('agentB-input'));
 processData(input);
 ```
+
+### Tutorial 4: AI Foto Analyse Gebruiken
+
+1. Start de Flask backend: `python app.py`
+2. Open `foto-analyse.html`
+3. Upload een gebouwfoto
+4. Bekijk de analyse resultaten
+5. Beantwoord verduidelijkingsvragen
+6. Zie [QUICKSTART.md](QUICKSTART.md) voor details
 
 ## 🐛 Troubleshooting
 
@@ -412,11 +468,18 @@ processData(input);
 - Check communicatie methode
 - Review agent inputs/outputs
 
+### Foto Analyse Werkt Niet
+- Check of Flask server draait op port 5000
+- Controleer bestandsformaat (JPG, PNG, GIF, WebP)
+- Verifieer bestandsgrootte (max 10MB)
+- Zie [API_TESTING.md](API_TESTING.md) voor test procedures
+
 ## 📞 Support
 
 - **Documentatie**: Zie `AGENT_DEVELOPER_GUIDE.md`
 - **Voorbeelden**: `agent-integratie-voorbeeld.html`
 - **Template**: `agent-template.html`
+- **Foto Analyse**: `FOTO_ANALYSE_README.md`
 
 ## 🗺️ Roadmap
 
@@ -425,18 +488,21 @@ processData(input);
 - [ ] Agent versioning
 - [ ] Workflow scheduling
 - [ ] Advanced analytics
+- [ ] Batch foto upload voor AI agent
 
 ### v1.2 (Gepland)
 - [ ] REST API backend
 - [ ] Database integratie
 - [ ] User authentication
 - [ ] Multi-tenant support
+- [ ] PDF export van foto analyses
 
 ### v2.0 (Toekomst)
 - [ ] AI-powered agent recommendations
 - [ ] Auto-scaling workflows
 - [ ] Distributed execution
 - [ ] Plugin system
+- [ ] 3D model reconstructie uit foto's
 
 ## 📄 Licentie
 
@@ -448,6 +514,14 @@ processData(input);
 - Open source contributors
 
 ## 📅 Changelog
+
+### v1.1.0 (2026-08-16)
+- ✨ AI Foto Analyse Agent toegevoegd
+- ✨ Flask REST API backend
+- ✨ GPT-4 Vision integratie
+- ✨ Interactieve verduidelijkingsvragen
+- ✨ Complete documentatie (3 nieuwe docs)
+- 🔧 Merged met Agent Platform
 
 ### v1.0.0 (2026-07-12)
 - ✨ Initial release

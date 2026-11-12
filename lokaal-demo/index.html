@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>RisicoScan Lokaal — Taxateur / Risicodeskundige</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">Risico<span>Scan</span> Lokaal</div>
+        <div class="badge-local">Alleen lokaal · live BAG/PDOK + OSM</div>
+    </header>
+
+    <main class="wrap">
+        <section class="hero">
+            <h1>Volledige risico-inspectie voor taxateur</h1>
+            <p>
+                Alleen harde feiten uit open data. Alles wat niet hard is staat als
+                <strong>CONTROLEER</strong> of <strong>SCHATTING</strong>. Werkt op iPhone via Safari op hetzelfde wifi.
+            </p>
+        </section>
+
+        <div class="grid">
+            <aside class="panel sticky">
+                <h2>1 · Objectgegevens</h2>
+
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📷</div>
+                    <div><strong>Sleep gebouwfoto</strong> of tik</div>
+                    <div class="muted">Optioneel · JPG/PNG</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" capture="environment" hidden>
+
+                <div class="fields">
+                    <label>Postcode
+                        <input id="postcode" value="1012 JS" autocomplete="postal-code">
+                    </label>
+                    <label>Huisnummer
+                        <input id="huisnummer" value="1" autocomplete="address-line2">
+                    </label>
+                </div>
+                <div class="fields full">
+                    <label>Gebruiksfunctie
+                        <select id="functie">
+                            <option>Winkel</option>
+                            <option>Kantoor</option>
+                            <option>Industrie / productie</option>
+                            <option>Opslag / warehouse</option>
+                            <option>Horeca</option>
+                            <option>Hotel</option>
+                            <option>Zorginstelling</option>
+                            <option>Woning / wooncomplex</option>
+                            <option>Garage / autobedrijf</option>
+                            <option>Bedrijfsverzamelgebouw</option>
+                            <option>Metaalbewerking</option>
+                            <option>Houtbewerking</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn-primary" id="analyzeBtn">Start volledige analyse</button>
+                    <button class="btn-secondary" id="exportBtn" disabled>Exporteer JSON</button>
+                </div>
+
+                <p class="hint">
+                    <strong>FEIT:</strong> BAG/PDOK, CBS buurt, Kadaster, kazerne-afstand, Open-Meteo metingen.<br>
+                    <strong>SCHATTING / CONTROLEER:</strong> opkomsttijd, bluswater, materialen, taxatiewaarden.<br>
+                    <strong>iPhone:</strong> zelfde wifi → <code>http://JOUW-IP:8765</code>
+                </p>
+            </aside>
+
+            <section class="panel">
+                <h2>2 · Rapportage risicodeskundige</h2>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div id="loadingText">Bevraagt BAG, pand en brandweer…</div>
+                </div>
+                <div id="placeholder" class="placeholder">
+                    Vul een postcode + huisnummer in en start. Op telefoon: zelfde wifi → IP:8765
+                </div>
+                <div class="results" id="results"></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/opendata.js"></script>
+    <script src="js/extra-apis.js"></script>
+    <script src="js/risk-engine.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

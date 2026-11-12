@@ -101,9 +101,16 @@ def build_report(
     functie: str,
     foto_hints: Optional[dict] = None,
     antwoorden: Optional[dict] = None,
+    extra: Optional[dict] = None,
 ) -> dict:
     foto_hints = foto_hints or {}
     antwoorden = antwoorden or {}
+    extra = extra or {}
+    cbs = extra.get("cbs") if isinstance(extra.get("cbs"), dict) else None
+    weer = extra.get("weer") if isinstance(extra.get("weer"), dict) else None
+    wegen = extra.get("wegen") if isinstance(extra.get("wegen"), dict) else None
+    perceel = extra.get("perceel") if isinstance(extra.get("perceel"), dict) else None
+
     bouwjaar = (pand or {}).get("bouwjaar") or foto_hints.get("bouwjaar")
     age = (datetime.now().year - bouwjaar) if bouwjaar else None
     nearest = brandweer[0] if brandweer else None
@@ -112,7 +119,10 @@ def build_report(
     )
 
     topics = [
-        _evaluate(t, locatie, pand, brandweer, water, functie, foto_hints, antwoorden, bouwjaar, age, nearest, risk_class)
+        _evaluate(
+            t, locatie, pand, brandweer, water, functie, foto_hints, antwoorden,
+            bouwjaar, age, nearest, risk_class, cbs, weer, wegen
+        )
         for t in TOPICS
     ]
     raw = sum(_rank(t["status"]) for t in topics)
@@ -121,11 +131,30 @@ def build_report(
     tekortkomingen = [t for t in topics if t["status"] in ("tekort", "aandacht")]
     openstaand = [t for t in topics if t["status"] == "onbekend"]
 
+    woz_k = cbs.get("gemiddelde_woningwaarde_k") if cbs else None
+    taxatie = {
+        "herbouwwaarde_indicatie": (
+            f"CBS gem. woningwaarde buurt ± €{woz_k * 1000:,.0f} (indicatief — geen herbouwwaarde)".replace(",", ".")
+            if isinstance(woz_k, (int, float))
+            else "n.n.b. — vraag taxateur/calculatie"
+        ),
+        "inventaris": "n.n.b.",
+        "bedrijfsschade": "afhankelijk van omzet / max. uitkeringstermijn",
+        "premie_drivers": [t["name"] for t in tekortkomingen[:6]],
+        "blootstelling": {
+            "bevolkingsdichtheid": cbs.get("bevolkingsdichtheid") if cbs else None,
+            "bedrijfsvestigingen": cbs.get("bedrijfsvestigingen") if cbs else None,
+            "omgevingsadressendichtheid": cbs.get("omgevingsadressendichtheid") if cbs else None,
+        },
+        "perceel_m2": perceel.get("grootte_m2") if perceel else None,
+    }
+
     return {
         "timestamp": datetime.now().isoformat(),
         "locatie": locatie,
         "pand": pand,
         "brandweer": {"nearest": nearest, "stations": brandweer, "riskClass": risk_class, "water": water},
+        "extra": {"cbs": cbs, "weer": weer, "wegen": wegen, "perceel": perceel},
         "functie": functie,
         "bouwjaar": bouwjaar,
         "age": age,
@@ -136,19 +165,17 @@ def build_report(
         "openstaand": openstaand,
         "vragen": _questions(functie, topics),
         "materialen": _materials(pand, foto_hints, bouwjaar),
-        "taxatie": {
-            "herbouwwaarde_indicatie": "n.n.b. — vraag taxateur/calculatie",
-            "inventaris": "n.n.b.",
-            "bedrijfsschade": "afhankelijk van omzet / max. uitkeringstermijn",
-            "premie_drivers": [t["name"] for t in tekortkomingen[:6]],
-        },
-        "conclusie": _conclusion(niveau, score, nearest, risk_class, pand, functie, openstaand, tekortkomingen),
+        "taxatie": taxatie,
+        "conclusie": _conclusion(niveau, score, nearest, risk_class, pand, functie, openstaand, tekortkomingen, cbs, weer),
     }
 
 
-def _evaluate(t, locatie, pand, brandweer, water, functie, foto_hints, a, bouwjaar, age, nearest, risk_class):
+def _evaluate(t, locatie, pand, brandweer, water, functie, foto_hints, a, bouwjaar, age, nearest, risk_class, cbs=None, weer=None, wegen=None):
     tid = t["id"]
     fn = (functie or "").lower()
+    cbs = cbs or {}
+    weer = weer or {}
+    wegen = wegen or {}
 
     if tid == "activiteiten":
         if a.get("activities_main"):
@@ -192,7 +219,12 @@ def _evaluate(t, locatie, pand, brandweer, water, functie, foto_hints, a, bouwja
         return _topic(t, "onbekend", "Geen keuringsinformatie bekend.")
 
     if tid == "verwarming":
-        return _topic(t, "ok" if a.get("heating") else "onbekend", a.get("heating") or "Type CV/stookruimte onbekend.")
+        if a.get("heating"):
+            return _topic(t, "ok", a["heating"])
+        gas = cbs.get("perc_aardgaswoningen")
+        if isinstance(gas, (int, float)) and gas >= 70:
+            return _topic(t, "aandacht", f"CBS: {gas}% aardgaswoningen in buurt (gem. verbruik {cbs.get('gem_aardgasverbruik') or '?'} m³). Verifieer CV/gasleidingen op object.")
+        return _topic(t, "onbekend", "Type CV/stookruimte onbekend.")
 
     if tid == "detectie":
         if a.get("detection"):
@@ -249,9 +281,25 @@ def _evaluate(t, locatie, pand, brandweer, water, functie, foto_hints, a, bouwja
         return _topic(t, "aandacht", "Taxatie: slotenklasse, alarm, camera — premie-relevant.")
 
     if tid == "water":
-        return _topic(t, "onbekend", a.get("water_storm") or "Dakafvoer, kelder, leidingbreukscenario’s.")
+        if a.get("water_storm"):
+            return _topic(t, "aandacht" if any(x in a["water_storm"].lower() for x in ("lekkage", "overlast", "accumulatie")) else "ok", a["water_storm"])
+        notes = []
+        if weer.get("elevation_m") is not None:
+            notes.append(f"hoogte ±{weer['elevation_m']} m (proxy overstroming: {weer.get('overstroming_hoogte_proxy')})")
+        if weer.get("max_neerslag_7d_mm") is not None:
+            notes.append(f"max neerslag 7d {weer['max_neerslag_7d_mm']} mm ({weer.get('water_neerslag_indicatie')})")
+        if notes:
+            status = "aandacht" if weer.get("overstroming_hoogte_proxy") == "hoog" or weer.get("water_neerslag_indicatie") == "hoog" else "aandacht" if weer.get("overstroming_hoogte_proxy") == "middel" else "ok"
+            if weer.get("overstroming_hoogte_proxy") == "laag" and weer.get("water_neerslag_indicatie") == "laag":
+                status = "ok"
+            return _topic(t, status, "Open-Meteo: " + "; ".join(notes) + ". Geen officiële LIWO-status — controleer kelder/dakafvoer.")
+        return _topic(t, "onbekend", "Dakafvoer, kelder, leidingbreukscenario’s.")
 
     if tid == "storm":
+        if weer.get("max_windstoten_7d_kmh") is not None:
+            st = weer.get("storm_indicatie") or "laag"
+            status = "tekort" if st == "hoog" else "aandacht" if st == "middel" else "ok"
+            return _topic(t, status, f"Open-Meteo: max windstoten 7d {weer['max_windstoten_7d_kmh']} km/h ({st}). Check dak/gevel/luifels.")
         return _topic(t, "onbekend", "Dakverankering, gevelplaten, luifels, bomen nabij.")
 
     if tid == "bedrijfsschade":
@@ -260,11 +308,18 @@ def _evaluate(t, locatie, pand, brandweer, water, functie, foto_hints, a, bouwja
         return _topic(t, "aandacht", "Vraag omzetafhankelijkheid, uitwijk, max. schadeperiode.")
 
     if tid == "brandweer":
-        if not nearest:
-            return _topic(t, "onbekend", "Geen kazerne via OSM — veiligheidsregio handmatig checken.")
-        note = f"Opkomst ±{nearest['duration_min']} min / {nearest['distance_km']} km ({nearest['name']})."
-        if risk_class == "Hoog":
-            return _topic(t, "tekort", note)
+        parts = []
+        if nearest:
+            parts.append(f"Opkomst ±{nearest['duration_min']} min / {nearest['distance_km']} km ({nearest['name']}).")
+        if cbs.get("afstand_brandweer_km") is not None:
+            parts.append(f"CBS gem. afstand brandweer {cbs['afstand_brandweer_km']} km.")
+        if wegen.get("bereikbaarheid_indicatie"):
+            parts.append(f"NWB: {wegen['bereikbaarheid_indicatie']}")
+        if not parts:
+            return _topic(t, "onbekend", "Geen kazerne/CBS — veiligheidsregio handmatig checken.")
+        note = " ".join(parts)
+        if risk_class == "Hoog" or "Beperkt" in (wegen.get("bereikbaarheid_indicatie") or ""):
+            return _topic(t, "tekort" if risk_class == "Hoog" else "aandacht", note)
         if risk_class == "Gemiddeld":
             return _topic(t, "aandacht", note)
         return _topic(t, "ok", note)
@@ -321,14 +376,18 @@ def _materials(pand, foto_hints, bouwjaar):
     }
 
 
-def _conclusion(niveau, score, nearest, risk_class, pand, functie, openstaand, tekortkomingen):
+def _conclusion(niveau, score, nearest, risk_class, pand, functie, openstaand, tekortkomingen, cbs=None, weer=None):
     parts = [f'Risiconiveau {niveau.upper()} (score {score}/100) voor functie “{functie or "onbekend"}”.']
     if pand and pand.get("bouwjaar"):
         parts.append(f'BAG-bouwjaar {pand["bouwjaar"]}, status “{pand.get("status") or "?"}”.')
     if nearest:
         parts.append(
-            f'Dichtstbijzijnde kazerne volgens OSM: {nearest["name"]} (±{nearest["duration_min"]} min, risicoklasse opkomst {risk_class}).'
+            f'Dichtstbijzijnde kazerne: {nearest["name"]} (±{nearest["duration_min"]} min, opkomstklasse {risk_class}).'
         )
+    if cbs and cbs.get("bevolkingsdichtheid"):
+        parts.append(f'CBS blootstelling: {cbs["bevolkingsdichtheid"]} inw/km², {cbs.get("bedrijfsvestigingen") or "?"} bedrijven.')
+    if weer and weer.get("elevation_m") is not None:
+        parts.append(f'Hoogte ±{weer["elevation_m"]} m (overstromingsproxy {weer.get("overstroming_hoogte_proxy")}).')
     parts.append(
         f"{len(tekortkomingen)} aandacht-/tekortpunten, {len(openstaand)} onderwerpen nog onbekend — deze bepalen de inspectieagenda."
     )

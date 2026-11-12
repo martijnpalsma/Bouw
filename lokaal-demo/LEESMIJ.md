@@ -1,53 +1,43 @@
-# Lokale RisicoScan — volledig voor taxateur / risicodeskundige
+# Lokale RisicoScan — taxateur / risk engineer
 
-**Alleen lokaal.** Niets wordt gepubliceerd.
+**Alleen lokaal.** Niets publiceren.
 
 ## Starten
 
 ```bash
-cd lokaal-demo
-./START-LOKAAL.sh
+cd lokaal-demo && ./START-LOKAAL.sh
+# http://localhost:8765
 ```
 
-- Computer: http://localhost:8765  
-- iPhone/iPad (zelfde wifi): `http://JOUW-IP:8765`
-
-Optioneel Flask-API (zelfde analyses + GPT-foto):
+Flask (zelfde data + GPT-foto):
 
 ```bash
-cd ..
 python3 app.py
 # POST /api/locatie  POST /api/risico  POST /api/upload
 ```
 
-## Wat erin zit (noodzakelijk voor risicodeskundige)
+## Openbare APIs (live)
 
-### Live open data
-| Bron | Wat |
-|------|-----|
-| **PDOK Locatieserver** | Adres, buurt, wijk, gemeente, waterschap, perceel |
-| **PDOK BAG WFS** | Bouwjaar, status, gebruiksdoel, oppervlakte, # VBO’s |
-| **OSM/Nominatim** | Brandweerkazernes in de buurt |
-| **Curated NL-kazernes** | Aanvulling waar OSM dun is (o.a. Amsterdam centrum) |
+| API | Nut voor risicodeskundige |
+|-----|---------------------------|
+| **PDOK Locatieserver** | Adres, buurt, wijk, perceelkoppeling |
+| **PDOK BAG WFS** | Bouwjaar, gebruiksdoel, oppervlakte, status |
+| **CBS Wijken & Buurten 2024** | Blootstelling: dichtheid, bedrijven, WOZ, gas%, afstand brandweer/ziekenhuis |
+| **Kadaster Kadastrale Kaart** | Perceelgrootte |
+| **RWS NWB Wegen** | TS-bereikbaarheid / straatnet |
+| **OSM + curated kazernes** | Opkomstschatting brandweer |
+| **Open-Meteo** | Hoogte (overstromingsproxy), wind/neerslag 7 dagen |
 
-### Schatting / inspectie
-| Onderdeel | Status |
-|-----------|--------|
-| Bluswater / hydranten | Schatting + checklist (geen betrouwbare open hydrant-API) |
-| Opkomsttijd | Berekend uit afstand + uitruk (beroeps/vrijwilligers) |
-| GPT Vision foto | Optioneel via Flask + OpenAI key |
+## Nog schatting / niet open
 
-### RiskWalk-checklist (24 onderwerpen)
-Bedrijfsactiviteiten, gebouwen, constructie, gevel/dak, compartimentering, elektra, verwarming, branddetectie, blusmiddelen, huishouding, roken/open vuur, accu’s/laden, gevaarlijke stoffen, machines, opslag, buitenopslag, inbraak, water, storm, bedrijfsschade, brandweer/repressie, ontruiming/BHV, dak/PV, sandwichpanelen.
+- Bluswater/hydranten (geen betrouwbare open API)
+- Officiële LIWO-overstromingskaarten (proxy via hoogte)
+- Externe veiligheid BRZO/buisleidingen (later)
 
-Plus functie-specifieke vragen (horeca, hotel, zorg, warehouse, garage, …).
+## Checklist
 
-### Output
-- Risicoscore + niveau  
-- Taxatie-aandacht (premie-drivers)  
-- Prioriteitsvragen + antwoorden → verfijning  
-- JSON-export  
+24 RiskWalk-onderwerpen + functie-specifieke vragen, score, taxatie, JSON-export.
 
 ## Screenshots
 
-Zie `screenshots/` en `/opt/cursor/artifacts/risicoscan-v2-*.png`.
+`screenshots/risicoscan-v2-*.png` en `/opt/cursor/artifacts/`

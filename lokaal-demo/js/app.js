@@ -69,7 +69,16 @@
         catch (e) { console.warn(e); }
       }
 
-      const water = OpenData.schatWatervoorziening(true);
+      loadingText.textContent = 'Haalt CBS, kadaster, wegen en weer…';
+      let extra = {};
+      if (locatie.lat != null) {
+        try { extra = await ExtraApis.verzamel(locatie.lat, locatie.lon); }
+        catch (e) { console.warn(e); }
+      }
+
+      const oad = extra.cbs?.omgevingsadressendichtheid;
+      const stedelijk = typeof oad === 'number' ? oad >= 1500 : true;
+      const water = OpenData.schatWatervoorziening(stedelijk);
       const fotoHints = RiskEngine.demoFotoHints(functie);
       if (selectedFile) {
         fotoHints.gevel = 'Foto geüpload — visuele AI-analyse optioneel via Flask; checklist hieronder is leidend.';
@@ -77,7 +86,7 @@
 
       loadingText.textContent = 'Bouwt risicodeskundige rapportage…';
       const report = RiskEngine.buildReport({
-        locatie, pand, brandweer, water, functie, fotoHints, antwoorden: extraAnswers
+        locatie, pand, brandweer, water, functie, fotoHints, antwoorden: extraAnswers, extra
       });
       lastReport = report;
       renderReport(report);
@@ -143,6 +152,10 @@
           </dl>` : '<p class="muted">Geen pand gevonden in BAG WFS voor dit punt.</p>'}
         </div>
       </div>
+
+      ${renderCbs(r.extra?.cbs)}
+      ${renderPerceelWegen(r.extra?.perceel, r.extra?.wegen)}
+      ${renderWeer(r.extra?.weer)}
 
       <div class="section open">
         <div class="section-head" onclick="this.parentElement.classList.toggle('open')"><h3>🏗️ Materialen & isolatie</h3><span>▾</span></div>
@@ -212,6 +225,12 @@
             <dt>Herbouw</dt><dd>${escapeHtml(r.taxatie?.herbouwwaarde_indicatie || '')}</dd>
             <dt>Inventaris</dt><dd>${escapeHtml(r.taxatie?.inventaris || '')}</dd>
             <dt>Bedrijfsschade</dt><dd>${escapeHtml(r.taxatie?.bedrijfsschade || '')}</dd>
+            <dt>Perceel</dt><dd>${r.taxatie?.perceel_m2 != null ? `${r.taxatie.perceel_m2} m²` : '—'}</dd>
+            <dt>Blootstelling</dt><dd>${escapeHtml([
+              r.taxatie?.blootstelling?.bevolkingsdichtheid != null ? `${r.taxatie.blootstelling.bevolkingsdichtheid} inw/km²` : null,
+              r.taxatie?.blootstelling?.bedrijfsvestigingen != null ? `${r.taxatie.blootstelling.bedrijfsvestigingen} bedrijven` : null,
+              r.taxatie?.blootstelling?.omgevingsadressendichtheid != null ? `OAD ${r.taxatie.blootstelling.omgevingsadressendichtheid}` : null
+            ].filter(Boolean).join(' · ') || '—')}</dd>
           </dl>
           <div class="chips">
             ${(r.taxatie?.premie_drivers || []).map(p => `<span class="chip warn">${escapeHtml(p)}</span>`).join('')}
@@ -254,6 +273,67 @@
       if (!Object.keys(antwoorden).length) return alert('Vul eerst één of meer antwoorden in.');
       runFullAnalysis(antwoorden);
     });
+  }
+
+  function renderCbs(c) {
+    if (!c) return '';
+    return `
+      <div class="section open">
+        <div class="section-head" onclick="this.parentElement.classList.toggle('open')"><h3>📊 CBS buurt (blootstelling)</h3><span>▾</span></div>
+        <div class="section-body">
+          <dl class="kv">
+            <dt>Buurt</dt><dd>${escapeHtml(c.buurtnaam || '—')} (${escapeHtml(c.buurtcode || '')})</dd>
+            <dt>Inwoners</dt><dd>${c.inwoners ?? '—'} · dichtheid ${c.bevolkingsdichtheid ?? '—'} /km²</dd>
+            <dt>OAD / stedelijk</dt><dd>${c.omgevingsadressendichtheid ?? '—'} / klasse ${c.stedelijkheid ?? '—'}</dd>
+            <dt>Bedrijven</dt><dd>${c.bedrijfsvestigingen ?? '—'} (horeca/handel ${c.bedrijven_handel_horeca ?? '—'}, nijverheid ${c.bedrijven_nijverheid ?? '—'})</dd>
+            <dt>Woningwaarde</dt><dd>${c.gemiddelde_woningwaarde_k != null ? `± €${(c.gemiddelde_woningwaarde_k * 1000).toLocaleString('nl-NL')}` : '—'}</dd>
+            <dt>Gas</dt><dd>${c.perc_aardgaswoningen ?? '—'}% aardgas · gem. ${c.gem_aardgasverbruik ?? '—'} m³</dd>
+            <dt>Afstanden</dt><dd>Brandweer ${c.afstand_brandweer_km ?? '—'} km · Ziekenhuis ${c.afstand_ziekenhuis_km ?? '—'} km · Oprit ${c.afstand_oprit_km ?? '—'} km</dd>
+            <dt>Bron</dt><dd><span class="chip source">${escapeHtml(c.bron || '')}</span></dd>
+          </dl>
+        </div>
+      </div>`;
+  }
+
+  function renderPerceelWegen(p, w) {
+    if (!p && !w) return '';
+    return `
+      <div class="section open">
+        <div class="section-head" onclick="this.parentElement.classList.toggle('open')"><h3>🗺️ Perceel & bereikbaarheid</h3><span>▾</span></div>
+        <div class="section-body">
+          ${p ? `<dl class="kv">
+            <dt>Kadaster</dt><dd>${escapeHtml([p.kadastrale_gemeente, p.sectie, p.perceelnummer].filter(Boolean).join(' '))} · ${p.grootte_m2 ?? '?'} m²</dd>
+            <dt>Bron</dt><dd><span class="chip source">${escapeHtml(p.bron || '')}</span></dd>
+          </dl>` : ''}
+          ${w ? `<dl class="kv">
+            <dt>NWB</dt><dd>${escapeHtml(w.bereikbaarheid_indicatie || '')}</dd>
+            <dt>Straten</dt><dd>${escapeHtml((w.straten || []).join(', ') || '—')}</dd>
+            <dt>Bron</dt><dd><span class="chip source">${escapeHtml(w.bron || '')}</span></dd>
+          </dl>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function renderWeer(w) {
+    if (!w) return '';
+    return `
+      <div class="section open">
+        <div class="section-head" onclick="this.parentElement.classList.toggle('open')"><h3>🌧️ Weer, wind & hoogte</h3><span>▾</span></div>
+        <div class="section-body">
+          <dl class="kv">
+            <dt>Hoogte</dt><dd>${w.elevation_m ?? '—'} m · overstromingsproxy <strong>${escapeHtml(w.overstroming_hoogte_proxy || '')}</strong></dd>
+            <dt>Neerslag 7d</dt><dd>max ${w.max_neerslag_7d_mm ?? '—'} mm (${escapeHtml(w.water_neerslag_indicatie || '')})</dd>
+            <dt>Wind 7d</dt><dd>max ${w.max_wind_7d_kmh ?? '—'} km/h · stoten ${w.max_windstoten_7d_kmh ?? '—'} km/h (${escapeHtml(w.storm_indicatie || '')})</dd>
+            <dt>Bron</dt><dd><span class="chip source">${escapeHtml(w.bron || '')}</span></dd>
+          </dl>
+          <p class="muted">${escapeHtml(w.toelichting || '')}</p>
+          <div class="chips">
+            ${(w.dagen || []).slice(0, 5).map(d =>
+              `<span class="chip">${escapeHtml((d.datum || '').slice(5))}: ${d.neerslag_mm ?? 0}mm / ${d.stoten_kmh ?? '—'}km/h</span>`
+            ).join('')}
+          </div>
+        </div>
+      </div>`;
   }
 
   function escapeHtml(s) {

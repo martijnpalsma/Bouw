@@ -327,6 +327,7 @@ def api_risico():
             functie=functie,
             foto_hints=hints,
             antwoorden=antwoorden,
+            extra=loc.get('extra') if isinstance(loc.get('extra'), dict) else None,
         )
         return jsonify({'success': True, 'report': report, 'opendata': loc}), 200
     except Exception as e:

@@ -272,6 +272,7 @@ def volledige_locatie_analyse(postcode: str, huisnummer: str) -> dict:
     locatie = zoek_adres(postcode, huisnummer)
     pand = None
     brandweer = []
+    extra = None
     if locatie.get("lat") is not None:
         try:
             pand = haal_pand(locatie["lat"], locatie["lon"])
@@ -281,7 +282,18 @@ def volledige_locatie_analyse(postcode: str, huisnummer: str) -> dict:
             brandweer = zoek_brandweer(locatie["lat"], locatie["lon"])
         except Exception as e:
             brandweer = [{"error": str(e)}]
-    water = schat_watervoorziening(stedelijk=True)
+        try:
+            from services.extra_apis import verzamel_extra
+
+            extra = verzamel_extra(locatie["lat"], locatie["lon"])
+        except Exception as e:
+            extra = {"error": str(e)}
+    stedelijk = True
+    if extra and isinstance(extra.get("cbs"), dict):
+        oad = extra["cbs"].get("omgevingsadressendichtheid")
+        if isinstance(oad, (int, float)):
+            stedelijk = oad >= 1500
+    water = schat_watervoorziening(stedelijk=stedelijk)
     nearest = brandweer[0] if brandweer and "error" not in brandweer[0] else None
     risk = (
         opkomst_risicoklasse(nearest["distance_km"], nearest["duration_min"])
@@ -294,4 +306,5 @@ def volledige_locatie_analyse(postcode: str, huisnummer: str) -> dict:
         "brandweer": brandweer,
         "water": water,
         "opkomst_risicoklasse": risk,
+        "extra": extra,
     }

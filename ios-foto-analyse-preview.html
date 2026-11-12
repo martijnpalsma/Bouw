@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Foto Analyse App - Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            max-width: 800px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .device-container {
+            perspective: 1000px;
+        }
+
+        .iphone {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .iphone:hover {
+            transform: rotateY(5deg) rotateX(5deg);
+        }
+
+        .notch {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 30px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .status-bar {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            padding-top: 8px;
+        }
+
+        .app-content {
+            height: calc(100% - 44px);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .app-header .icon {
+            font-size: 50px;
+            margin-bottom: 8px;
+        }
+
+        .app-header h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .app-header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            color: white;
+            margin: 16px 0;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+        }
+
+        .upload-section {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .upload-placeholder {
+            background: rgba(255,255,255,0.2);
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .upload-placeholder .icon {
+            font-size: 50px;
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            color: #000;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-item {
+            margin-bottom: 10px;
+        }
+
+        .result-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .result-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .result-list li {
+            padding: 6px 0;
+            padding-left: 16px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .result-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+            border: 2px solid #ff9800;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            color: #000;
+        }
+
+        .question-card h3 {
+            color: #e65100;
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .question-item {
+            background: rgba(255,255,255,0.7);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .question-item strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        .question-item small {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 800px;
+            margin-top: 2rem;
+        }
+
+        .info-section h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature {
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature h4 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            margin: 1rem 0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .iphone {
+                transform: scale(0.85);
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📱 iOS Foto Analyse App</h1>
+        <p>Native SwiftUI app voor AI-powered gebouw analyse</p>
+    </div>
+
+    <div class="device-container">
+        <div class="iphone">
+            <div class="notch"></div>
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>📶 📡 🔋</span>
+                </div>
+                <div class="app-content" id="appContent">
+                    <!-- Initial state -->
+                    <div id="initialScreen">
+                        <div class="app-header">
+                            <div class="icon">🏢</div>
+                            <h2>Gebouw Foto Analyse</h2>
+                            <p>AI-powered analyse van constructie en materialen</p>
+                        </div>
+
+                        <div class="status-pill">
+                            <span class="status-dot"></span>
+                            <span>API Verbonden</span>
+                            <span style="color: #fbbf24;">• Demo Mode</span>
+                        </div>
+
+                        <div class="upload-section">
+                            <div class="upload-placeholder">
+                                <div class="icon">📷</div>
+                                <div style="font-size: 15px; font-weight: 600;">Selecteer een gebouwfoto</div>
+                            </div>
+
+                            <div class="button-group">
+                                <button class="btn" onclick="simulatePhotoLibrary()">
+                                    <span>📷</span> Foto Bibliotheek
+                                </button>
+                                <button class="btn" onclick="simulateCamera()">
+                                    <span>📸</span> Camera
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading state -->
+                    <div id="loadingScreen" style="display: none;">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p style="font-weight: 600; font-size: 16px;">AI analyseert foto...</p>
+                            <p style="font-size: 13px; opacity: 0.8; margin-top: 8px;">Dit kan 10-30 seconden duren</p>
+                        </div>
+                    </div>
+
+                    <!-- Results state -->
+                    <div id="resultsScreen" style="display: none;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px; color: white;">
+                                <span style="font-size: 24px;">✅</span>
+                                <span style="font-size: 18px; font-weight: bold;">Analyse Compleet</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <h3>🏗️ Constructie</h3>
+                            <div class="result-item">
+                                <div class="result-label">Type</div>
+                                <div class="result-value">Woonhuis</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Draagconstructie</div>
+                                <div class="result-value">Traditioneel metselwerk</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Verdiepingen</div>
+                                <div class="result-value">2</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <h3>🧱 Materialen</h3>
+                            <div class="result-item">
+                                <div class="result-label">Gevel</div>
+                                <ul class="result-list">
+                                    <li>Baksteen</li>
+                                    <li>Betonnen plint</li>
+                                </ul>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Dak</div>
+                                <ul class="result-list">
+                                    <li>Keramische pannen</li>
+                                </ul>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Kozijnen</div>
+                                <ul class="result-list">
+                                    <li>Kunststof</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <h3>🌡️ Isolatie</h3>
+                            <div class="result-item">
+                                <div class="result-label">Geschat</div>
+                                <ul class="result-list">
+                                    <li>Spouwmuurisolatie</li>
+                                    <li>Dakisolatie</li>
+                                    <li>HR++ beglazing</li>
+                                </ul>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Waarschijnlijkheid</div>
+                                <span class="badge badge-high">HOOG</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <h3>📅 Bouwperiode</h3>
+                            <div class="result-item">
+                                <div class="result-label">Geschat</div>
+                                <div class="result-value">1990-2000</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Indicatoren</div>
+                                <ul class="result-list">
+                                    <li>Moderne kozijnen</li>
+                                    <li>Architectuurstijl jaren '90</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="result-card" style="text-align: center;">
+                            <div style="margin-bottom: 8px;">
+                                <span style="font-size: 18px;">🎯</span>
+                                <strong style="margin-left: 8px;">Betrouwbaarheid:</strong>
+                                <span class="badge badge-high" style="margin-left: 8px;">HOOG</span>
+                            </div>
+                            <p style="font-size: 13px; color: #666; margin-top: 12px;">
+                                <strong>Conclusie:</strong> Modern woonhuis uit jaren '90 in goede staat met waarschijnlijk voldoende isolatie
+                            </p>
+                        </div>
+
+                        <div class="question-card">
+                            <h3>❓ Verduidelijkingsvragen</h3>
+                            <div class="question-item">
+                                <strong>Wanneer is het gebouw voor het laatst gerenoveerd?</strong>
+                                <small>Reden: Voor nauwkeurige inschatting van isolatiewaarden</small>
+                            </div>
+                            <button class="btn" style="margin-top: 12px; width: 100%; background: #ff9800; color: white;">
+                                <span>💬</span> Beantwoord Vragen
+                            </button>
+                        </div>
+
+                        <button class="btn" onclick="resetApp()" style="margin-top: 16px; width: 100%; background: white; color: #667eea;">
+                            <span>🔄</span> Nieuwe Analyse
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('features')">✨ Features</div>
+            <div class="tab" onclick="showTab('setup')">⚙️ Setup</div>
+            <div class="tab" onclick="showTab('code')">💻 Code</div>
+        </div>
+
+        <div id="featuresTab" class="tab-content active">
+            <h3>App Features</h3>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📸</div>
+                    <h4>Foto Upload</h4>
+                    <p>Camera of bibliotheek</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🤖</div>
+                    <h4>AI Analyse</h4>
+                    <p>GPT-4 Vision integratie</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🏗️</div>
+                    <h4>Constructie</h4>
+                    <p>Type & draagstructuur</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🧱</div>
+                    <h4>Materialen</h4>
+                    <p>Gevel, dak, kozijnen</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌡️</div>
+                    <h4>Isolatie</h4>
+                    <p>Geschat & waarschijnlijkheid</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">❓</div>
+                    <h4>Interactief</h4>
+                    <p>Verduidelijkingsvragen</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Native SwiftUI</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 0.5rem 0;">✅ iOS 17.0+</li>
+                <li style="padding: 0.5rem 0;">✅ iPhone & iPad support</li>
+                <li style="padding: 0.5rem 0;">✅ Camera & Photo Library toegang</li>
+                <li style="padding: 0.5rem 0;">✅ API configuratie in Settings</li>
+                <li style="padding: 0.5rem 0;">✅ Offline ready structuur</li>
+                <li style="padding: 0.5rem 0;">✅ SwiftUI best practices</li>
+            </ul>
+        </div>
+
+        <div id="setupTab" class="tab-content">
+            <h3>Xcode Setup</h3>
+            <p>Open het project in Xcode:</p>
+            <div class="code-block">open FotoAnalyseApp/FotoAnalyseApp.xcodeproj</div>
+
+            <h4 style="margin-top: 1.5rem;">Project Structuur</h4>
+            <div class="code-block">FotoAnalyseApp/
+├── FotoAnalyseApp.xcodeproj
+└── FotoAnalyseApp/
+    ├── FotoAnalyseAppApp.swift    # Main app entry
+    ├── Views/
+    │   ├── ContentView.swift      # Hoofd view
+    │   ├── ResultsView.swift      # Resultaten
+    │   ├── CameraView.swift       # Camera
+    │   └── SettingsView.swift     # Instellingen
+    ├── Models/
+    │   └── AnalysisModels.swift   # Data models
+    ├── Services/
+    │   └── AnalysisService.swift  # API service
+    └── Resources/
+        └── Info.plist</div>
+
+            <h4 style="margin-top: 1.5rem;">Flask Backend Starten</h4>
+            <p>De app heeft de Flask API nodig:</p>
+            <div class="code-block">cd /workspace
+python app.py
+
+# Server draait op http://localhost:5000</div>
+
+            <h4 style="margin-top: 1.5rem;">App Configureren</h4>
+            <p>In de app: Settings → API URL instellen op:</p>
+            <div class="code-block">http://localhost:5000
+# of
+http://YOUR_IP:5000</div>
+        </div>
+
+        <div id="codeTab" class="tab-content">
+            <h3>Code Highlights</h3>
+            
+            <h4>API Service (Swift)</h4>
+            <div class="code-block">@MainActor
+class AnalysisService: ObservableObject {
+    @Published var uploadState: UploadState = .idle
+    @Published var currentAnalysis: AnalysisResponse?
+    
+    func uploadAndAnalyze(image: UIImage) async {
+        uploadState = .uploading
+        
+        // Compress image
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            return
+        }
+        
+        // Create multipart form data
+        var request = URLRequest(url: apiURL)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\\(boundary)", 
+                         forHTTPHeaderField: "Content-Type")
+        
+        // Upload & decode response
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(AnalysisResponse.self, from: data)
+        
+        uploadState = .completed(response)
+    }
+}</div>
+
+            <h4 style="margin-top: 1.5rem;">SwiftUI View</h4>
+            <div class="code-block">struct ContentView: View {
+    @EnvironmentObject var analysisService: AnalysisService
+    @State private var selectedImage: UIImage?
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient(colors: [Color(hex: "667eea"), 
+                                       Color(hex: "764ba2")], 
+                              startPoint: .topLeading, 
+                              endPoint: .bottomTrailing)
+                
+                ScrollView {
+                    VStack {
+                        // Upload sectie
+                        PhotosPicker(selection: $selectedPhoto) {
+                            Label("Foto Bibliotheek", systemImage: "photo")
+                        }
+                        
+                        // Resultaten
+                        if case .completed(let response) = analysisService.uploadState {
+                            ResultsView(response: response)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}</div>
+
+            <h4 style="margin-top: 1.5rem;">Data Models</h4>
+            <div class="code-block">struct AnalysisResponse: Codable {
+    let success: Bool
+    let filename: String?
+    let analysis: BuildingAnalysis?
+}
+
+struct BuildingAnalysis: Codable {
+    let constructie: Constructie?
+    let materialen: Materialen?
+    let isolatie: Isolatie?
+    let staat: Staat?
+    let bouwperiode: Bouwperiode?
+    let verduidelijkingsvragen: [Vraag]?
+}</div>
+        </div>
+    </div>
+
+    <script>
+        function simulatePhotoLibrary() {
+            document.getElementById('initialScreen').style.display = 'none';
+            document.getElementById('loadingScreen').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('resultsScreen').style.display = 'block';
+            }, 3000);
+        }
+
+        function simulateCamera() {
+            simulatePhotoLibrary();
+        }
+
+        function resetApp() {
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('initialScreen').style.display = 'block';
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

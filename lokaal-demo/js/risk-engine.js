@@ -1,6 +1,7 @@
 /**
  * Risico-engine voor taxateur / risicodeskundige
- * Gebaseerd op RiskWalk-inspectieonderwerpen + gebruiksfunctie-specifieke vragen
+ * Regel: alleen harde feiten presenteren als feit.
+ * Alles wat afgeleid/geschat is → zekerheid "controleer" of "schatting".
  */
 
 const RiskEngine = (() => {
@@ -98,6 +99,10 @@ const RiskEngine = (() => {
     return { ok: 0, onbekend: 1, aandacht: 2, tekort: 3 }[s] ?? 1;
   }
 
+  function topic(t, status, note, zekerheid = 'controleer') {
+    return { id: t.id, name: t.name, group: t.group, status, note, zekerheid };
+  }
+
   function buildReport({ locatie, pand, brandweer, water, functie, fotoHints, antwoorden, extra }) {
     extra = extra || {};
     const cbs = extra.cbs || null;
@@ -105,7 +110,7 @@ const RiskEngine = (() => {
     const wegen = extra.wegen || null;
     const perceel = extra.perceel || null;
 
-    const bouwjaar = pand?.bouwjaar || fotoHints?.bouwjaar || null;
+    const bouwjaar = pand?.bouwjaar || null;
     const age = bouwjaar ? new Date().getFullYear() - bouwjaar : null;
     const nearest = brandweer?.[0] || null;
     const riskClass = nearest
@@ -124,6 +129,8 @@ const RiskEngine = (() => {
     const vragen = buildQuestions(functie, topics);
     const tekortkomingen = topics.filter(t => t.status === 'tekort' || t.status === 'aandacht');
     const openstaand = topics.filter(t => t.status === 'onbekend');
+    const feiten = topics.filter(t => t.zekerheid === 'feit');
+    const teControleren = topics.filter(t => t.zekerheid !== 'feit');
 
     const wozK = cbs?.gemiddelde_woningwaarde_k;
 
@@ -135,35 +142,48 @@ const RiskEngine = (() => {
         nearest,
         stations: brandweer || [],
         riskClass,
+        riskClass_zekerheid: 'schatting',
         water
       },
       extra: { cbs, weer, wegen, perceel },
       functie,
+      functie_zekerheid: 'controleer',
       bouwjaar,
       age,
       score,
+      score_toelichting: 'Score weerspiegelt openstaande inspectiepunten, geen verzekeringsadvies.',
       niveau,
       topics,
       tekortkomingen,
       openstaand,
+      feiten,
+      teControleren,
       vragen,
       materialen: inferMaterials(pand, fotoHints, bouwjaar),
       taxatie: {
         herbouwwaarde_indicatie: typeof wozK === 'number'
-          ? `CBS gem. woningwaarde buurt ± €${(wozK * 1000).toLocaleString('nl-NL')} (indicatief, geen herbouwwaarde)`
-          : 'n.n.b. — vraag taxateur/calculatie',
-        inventaris: 'n.n.b.',
-        bedrijfsschade: 'afhankelijk van omzet / max. uitkeringstermijn',
-        premie_drivers: tekortkomingen.slice(0, 6).map(t => t.name),
+          ? `CBS gem. woningwaarde buurt €${(wozK * 1000).toLocaleString('nl-NL')} — CONTROLEER: dit is géén herbouwwaarde van dit object`
+          : 'n.n.b. — CONTROLEER bij taxateur/calculatie',
+        herbouwwaarde_zekerheid: 'controleer',
+        inventaris: 'n.n.b. — CONTROLEER op locatie / polis',
+        inventaris_zekerheid: 'controleer',
+        bedrijfsschade: 'n.n.b. — CONTROLEER omzet / max. uitkeringstermijn',
+        bedrijfsschade_zekerheid: 'controleer',
+        premie_drivers: teControleren.slice(0, 8).map(t => t.name),
         blootstelling: {
           bevolkingsdichtheid: cbs?.bevolkingsdichtheid ?? null,
           bedrijfsvestigingen: cbs?.bedrijfsvestigingen ?? null,
-          omgevingsadressendichtheid: cbs?.omgevingsadressendichtheid ?? null
+          omgevingsadressendichtheid: cbs?.omgevingsadressendichtheid ?? null,
+          zekerheid: cbs ? 'feit' : 'onbekend',
+          bron: cbs?.bron || null
         },
-        perceel_m2: perceel?.grootte_m2 ?? null
+        perceel_m2: perceel?.grootte_m2 ?? null,
+        perceel_zekerheid: perceel?.grootte_m2 != null ? 'feit' : 'onbekend'
       },
       bronnen: collectSources(locatie, pand, brandweer, water, extra),
-      conclusie: writeConclusion({ niveau, score, nearest, riskClass, pand, functie, openstaand, tekortkomingen, cbs, weer })
+      conclusie: writeConclusion({
+        niveau, score, nearest, riskClass, pand, functie, openstaand, tekortkomingen, feiten, teControleren, cbs, weer
+      })
     };
   }
 
@@ -176,143 +196,166 @@ const RiskEngine = (() => {
 
     switch (t.id) {
       case 'activiteiten':
-        if (a.activities_main) return topic(t, 'ok', a.activities_main);
-        if (functie) return topic(t, 'aandacht', `Opgegeven functie: ${functie}. Verifieer feitelijke activiteiten.`);
-        return topic(t, 'onbekend', 'Nog geen activiteiten vastgelegd.');
+        if (a.activities_main) return topic(t, 'ok', a.activities_main, 'feit');
+        if (functie) {
+          return topic(t, 'onbekend',
+            `Opgegeven in formulier: “${functie}”. CONTROLEER feitelijke activiteiten op locatie — niet overgenomen als feit.`,
+            'controleer');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: bedrijfsactiviteiten nog niet vastgelegd.', 'controleer');
 
       case 'gebouwen':
         if (pand) {
-          return topic(t, 'ok', `BAG-pand: bouwjaar ${pand.bouwjaar || '?'}, status ${pand.status || '?'}, VBO’s ${pand.aantal_verblijfsobjecten ?? '?'}`);
+          return topic(t, 'ok',
+            `BAG: bouwjaar ${pand.bouwjaar ?? 'n.b.'}, status ${pand.status || 'n.b.'}, VBO’s ${pand.aantal_verblijfsobjecten ?? 'n.b.'} (${pand.bron || 'BAG'}).`,
+            'feit');
         }
-        return topic(t, 'onbekend', 'Geen pandgegevens uit BAG.');
+        return topic(t, 'onbekend', 'CONTROLEER: geen pand in BAG WFS voor dit punt.', 'controleer');
 
       case 'constructie':
-        if (a.construction) return topic(t, 'ok', a.construction);
-        if (fotoHints?.constructie) return topic(t, 'aandacht', fotoHints.constructie + ' (uit foto/schatting)');
-        return topic(t, 'onbekend', 'Draagconstructie niet vastgesteld — vraag op of inspecteer.');
+        if (a.construction) return topic(t, 'ok', a.construction, 'feit');
+        return topic(t, 'onbekend', 'CONTROLEER: draagconstructie (beton/staal/hout/metselwerk) — niet bekend uit open data.', 'controleer');
 
       case 'gevel_dak':
-        if (a.facade) return topic(t, 'ok', a.facade);
-        if (fotoHints?.gevel) return topic(t, 'aandacht', fotoHints.gevel);
-        return topic(t, 'aandacht', 'Controleer brandklasse gevel/dakisolatie (PIR/PUR vs minerale wol).');
+        if (a.facade) return topic(t, 'ok', a.facade, 'feit');
+        if (fotoHints?.gevel) {
+          return topic(t, 'onbekend', `CONTROLEER: ${fotoHints.gevel}`, 'controleer');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: gevel-/dakmateriaal en brandklasse (PIR/PUR/MW) op locatie.', 'controleer');
 
       case 'compartimentering':
-        if (a.compartment) return topic(t, a.compartment.toLowerCase().includes('geen') ? 'tekort' : 'ok', a.compartment);
-        return topic(t, 'onbekend', 'WBDBO / branddeuren / doorvoeringen niet zichtbaar — kritiek inspectiepunt.');
+        if (a.compartment) {
+          return topic(t, a.compartment.toLowerCase().includes('geen') ? 'tekort' : 'ok', a.compartment, 'feit');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: WBDBO, branddeuren, doorvoeringen — niet uit open data.', 'controleer');
 
       case 'elektra':
-        if (a.electrical) return topic(t, 'ok', a.electrical);
-        if (age != null && age > 30) return topic(t, 'aandacht', `Bouwjaar ±${bouwjaar}: vraag recente elektra-keuring (NEN 3140 / Scope).`);
-        return topic(t, 'onbekend', 'Geen keuringsinformatie bekend.');
+        if (a.electrical) return topic(t, 'ok', a.electrical, 'feit');
+        if (age != null && age > 30) {
+          return topic(t, 'onbekend',
+            `BAG-bouwjaar ${bouwjaar} (feit). CONTROLEER: recente elektra-keuring (NEN 3140 / Scope) — leeftijd ≠ keuringsstatus.`,
+            'controleer');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: elektra-keuring / ouderdom installatie.', 'controleer');
 
       case 'verwarming':
-        if (a.heating) return topic(t, 'ok', a.heating);
-        if (typeof C.perc_aardgaswoningen === 'number' && C.perc_aardgaswoningen >= 70) {
-          return topic(t, 'aandacht', `CBS: ${C.perc_aardgaswoningen}% aardgaswoningen (gem. ${C.gem_aardgasverbruik ?? '?'} m³). Verifieer CV/gas op object.`);
+        if (a.heating) return topic(t, 'ok', a.heating, 'feit');
+        if (typeof C.perc_aardgaswoningen === 'number') {
+          return topic(t, 'onbekend',
+            `CBS-buurtfeit: ${C.perc_aardgaswoningen}% aardgaswoningen (gem. ${C.gem_aardgasverbruik ?? '?'} m³). CONTROLEER type CV/gas op dí́t object — buurt≠object.`,
+            'controleer');
         }
-        return topic(t, 'onbekend', 'Type CV/stookruimte/gas onbekend.');
+        return topic(t, 'onbekend', 'CONTROLEER: type verwarming / stookruimte / gas.', 'controleer');
 
       case 'detectie':
         if (a.detection) {
           const low = /geen|nee/i.test(a.detection);
-          return topic(t, low ? 'tekort' : 'ok', a.detection);
+          return topic(t, low ? 'tekort' : 'ok', a.detection, 'feit');
         }
-        if (/hotel|zorg|opslag/i.test(functie || '')) return topic(t, 'aandacht', 'Functie vraagt om adequate detectie — status onbekend.');
-        return topic(t, 'onbekend', 'Detectie/doormelding niet vastgesteld.');
+        return topic(t, 'onbekend', 'CONTROLEER: rookmelders / BMC / doormelding.', 'controleer');
 
       case 'blusmiddelen':
-        if (a.extinguishers) return topic(t, /geen|nee/i.test(a.extinguishers) ? 'tekort' : 'ok', a.extinguishers);
-        return topic(t, 'onbekend', 'Handblussers/haspels/sprinkler niet bevestigd.');
+        if (a.extinguishers) {
+          return topic(t, /geen|nee/i.test(a.extinguishers) ? 'tekort' : 'ok', a.extinguishers, 'feit');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: handblussers / haspels / sprinkler + keuring.', 'controleer');
 
       case 'huishouding':
-        if (a.housekeeping) return topic(t, /slecht|rommel/i.test(a.housekeeping) ? 'aandacht' : 'ok', a.housekeeping);
-        return topic(t, 'onbekend', 'Orde & netheid tijdens inspectie beoordelen.');
+        if (a.housekeeping) {
+          return topic(t, /slecht|rommel/i.test(a.housekeeping) ? 'aandacht' : 'ok', a.housekeeping, 'feit');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: orde & netheid tijdens inspectie.', 'controleer');
 
       case 'roken':
-        return topic(t, 'onbekend', 'Rookbeleid / open vuur / hot work permit controleren.');
+        return topic(t, 'onbekend', 'CONTROLEER: rookbeleid, open vuur, hot-work permit.', 'controleer');
 
       case 'accus':
-        if (a.accus) return topic(t, /ja|lithium|laden/i.test(a.accus) ? 'aandacht' : 'ok', a.accus);
-        if (/garage|opslag|industrie/i.test(functie || '')) return topic(t, 'aandacht', 'Functie: vraag expliciet naar lithium-laden / EV.');
-        return topic(t, 'onbekend', "Lithium-ion laden: vrije ruimte ≥2 m, detectie, niet onbeheerd laden.");
+        if (a.accus) {
+          return topic(t, /ja|lithium|laden/i.test(a.accus) ? 'aandacht' : 'ok', a.accus, 'feit');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: lithium-ion / e-bike / EV-laden (vrije ruimte, detectie, onbeheerd laden).', 'controleer');
 
       case 'gevaarlijk':
-        if (a.hazmat) return topic(t, /ja|aanwezig/i.test(a.hazmat) ? 'aandacht' : 'ok', a.hazmat);
-        if (/industrie|metaal|garage|opslag/i.test(functie || '')) return topic(t, 'aandacht', 'Functie suggereert mogelijke gevaarlijke stoffen.');
-        return topic(t, 'onbekend', 'ADR/stoffenlijst opvragen.');
+        if (a.hazmat) {
+          return topic(t, /ja|aanwezig/i.test(a.hazmat) ? 'aandacht' : 'ok', a.hazmat, 'feit');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: ADR / stoffenlijst / gasflessen — niet afleiden uit functie alleen.', 'controleer');
 
       case 'machines':
-        if (/industrie|metaal|hout|garage/i.test(functie || '')) return topic(t, 'aandacht', 'Procesgebonden brandrisico’s inventariseren.');
-        return topic(t, 'ok', 'Geen zware processen verwacht op basis van functie — verifieer.');
+        return topic(t, 'onbekend', 'CONTROLEER: machines/processen en brandlast — niet bekend uit open data.', 'controleer');
 
       case 'opslag':
-        if (/opslag|winkel|industrie/i.test(functie || '')) return topic(t, 'aandacht', 'Opslaghoogte, brandlast en sprinklercompatibiliteit checken.');
-        return topic(t, 'onbekend', 'Interne opslag beoordelen.');
+        return topic(t, 'onbekend', 'CONTROLEER: opslaghoogte, brandlast, sprinklercompatibiliteit.', 'controleer');
 
       case 'buitenopslag':
-        return topic(t, 'onbekend', 'Afstand tot gevel, containers, pallets, gasflessen buiten controleren.');
+        return topic(t, 'onbekend', 'CONTROLEER: afstand tot gevel, containers, pallets, gasflessen buiten.', 'controleer');
 
       case 'inbraak':
-        if (a.security) return topic(t, 'ok', a.security);
-        return topic(t, 'aandacht', 'Taxatie: slotenklasse, alarm, camera, bereikbaarheid — premie-relevant.');
+        if (a.security) return topic(t, 'ok', a.security, 'feit');
+        return topic(t, 'onbekend', 'CONTROLEER: slotenklasse, alarm, camera (premie-relevant).', 'controleer');
 
       case 'water':
-        if (a.water_storm) return topic(t, /lekkage|overlast|accumulatie/i.test(a.water_storm) ? 'aandacht' : 'ok', a.water_storm);
+        if (a.water_storm) {
+          return topic(t, /lekkage|overlast|accumulatie/i.test(a.water_storm) ? 'aandacht' : 'ok', a.water_storm, 'feit');
+        }
         if (W.elevation_m != null || W.max_neerslag_7d_mm != null) {
           const notes = [];
-          if (W.elevation_m != null) notes.push(`hoogte ±${W.elevation_m} m (proxy ${W.overstroming_hoogte_proxy})`);
-          if (W.max_neerslag_7d_mm != null) notes.push(`max neerslag 7d ${W.max_neerslag_7d_mm} mm (${W.water_neerslag_indicatie})`);
-          let status = 'ok';
-          if (W.overstroming_hoogte_proxy === 'hoog' || W.water_neerslag_indicatie === 'hoog') status = 'aandacht';
-          else if (W.overstroming_hoogte_proxy === 'middel' || W.water_neerslag_indicatie === 'middel') status = 'aandacht';
-          return topic(t, status, 'Open-Meteo: ' + notes.join('; ') + '. Geen officiële LIWO — check kelder/dak.');
+          if (W.elevation_m != null) {
+            notes.push(`Open-Meteo hoogte ${W.elevation_m} m (feit uit model)`);
+          }
+          if (W.max_neerslag_7d_mm != null) {
+            notes.push(`neerslag 7d max ${W.max_neerslag_7d_mm} mm (feit)`);
+          }
+          notes.push('CONTROLEER: kelder/dakafvoer — overstromingslabel is PROXY, geen LIWO');
+          return topic(t, 'onbekend', notes.join('. ') + '.', 'controleer');
         }
-        return topic(t, 'onbekend', 'Dakafvoer, kelder, leidingbreukscenario’s.');
+        return topic(t, 'onbekend', 'CONTROLEER: dakafvoer, kelder, leidingbreukscenario’s.', 'controleer');
 
       case 'storm':
         if (W.max_windstoten_7d_kmh != null) {
-          const st = W.storm_indicatie || 'laag';
-          const status = st === 'hoog' ? 'tekort' : st === 'middel' ? 'aandacht' : 'ok';
-          return topic(t, status, `Open-Meteo: max windstoten 7d ${W.max_windstoten_7d_kmh} km/h (${st}). Check dak/gevel.`);
+          return topic(t, 'onbekend',
+            `Open-Meteo feit: max windstoten 7d ${W.max_windstoten_7d_kmh} km/h. CONTROLEER dak/gevel/luifels op object.`,
+            'controleer');
         }
-        return topic(t, 'onbekend', 'Dakverankering, gevelplaten, luifels, bomen nabij.');
+        return topic(t, 'onbekend', 'CONTROLEER: dakverankering, gevelplaten, luifels, bomen nabij.', 'controleer');
 
       case 'bedrijfsschade':
-        if (a.bi) return topic(t, 'ok', a.bi);
-        return topic(t, 'aandacht', 'Vraag omzetafhankelijkheid, uitwijkmogelijkheid, max. schadeperiode.');
+        if (a.bi) return topic(t, 'ok', a.bi, 'feit');
+        return topic(t, 'onbekend', 'CONTROLEER: omzetafhankelijkheid, uitwijk, max. schadeperiode.', 'controleer');
 
       case 'brandweer': {
+        if (!nearest && C.afstand_brandweer_km == null) {
+          return topic(t, 'onbekend', 'CONTROLEER: geen kazerne/CBS-afstand gevonden.', 'controleer');
+        }
         const parts = [];
-        if (nearest) parts.push(`Opkomst ±${nearest.duration_min} min / ${nearest.distance_km} km (${nearest.name}).`);
-        if (C.afstand_brandweer_km != null) parts.push(`CBS gem. afstand brandweer ${C.afstand_brandweer_km} km.`);
-        if (R.bereikbaarheid_indicatie) parts.push(`NWB: ${R.bereikbaarheid_indicatie}`);
-        if (!parts.length) return topic(t, 'onbekend', 'Geen kazerne/CBS — veiligheidsregio handmatig checken.');
-        const note = parts.join(' ');
-        if (riskClass === 'Hoog') return topic(t, 'tekort', note);
-        if (riskClass === 'Gemiddeld' || /Beperkt/.test(R.bereikbaarheid_indicatie || '')) return topic(t, 'aandacht', note);
-        return topic(t, 'ok', note);
+        if (nearest) {
+          parts.push(`FEIT (hemelsbreed): ${nearest.name} op ${nearest.distance_km} km (${nearest.bron || 'bron n.b.'})`);
+          parts.push(`SCHATTING: opkomst ±${nearest.duration_min} min / klasse “${riskClass}” — geen officiële VR-normtoets`);
+        }
+        if (C.afstand_brandweer_km != null) {
+          parts.push(`CBS-buurtfeit: gem. afstand brandweer ${C.afstand_brandweer_km} km`);
+        }
+        if (R.bereikbaarheid_indicatie) {
+          parts.push(`NWB-indicatie: ${R.bereikbaarheid_indicatie} — CONTROLEER TS-toegang op locatie`);
+        }
+        return topic(t, 'onbekend', parts.join('. ') + '.', nearest ? 'schatting' : 'controleer');
       }
 
       case 'ontruiming':
-        if (/hotel|zorg|onderwijs/i.test(functie || '')) return topic(t, 'aandacht', 'Kwetsbare populatie: ontruimingsplan + oefeningen vereist.');
-        return topic(t, 'onbekend', 'BHV-organisatie en ontruimingsplattegronden controleren.');
+        return topic(t, 'onbekend', 'CONTROLEER: BHV-organisatie en ontruimingsplattegronden.', 'controleer');
 
       case 'dakveiligheid':
-        if (a.solar) return topic(t, /ja|paneel/i.test(a.solar) ? 'aandacht' : 'ok', a.solar);
-        return topic(t, 'onbekend', 'PV-installatie, ballast, doorvoeren, blusprocedure.');
+        if (a.solar) {
+          return topic(t, /ja|paneel/i.test(a.solar) ? 'aandacht' : 'ok', a.solar, 'feit');
+        }
+        return topic(t, 'onbekend', 'CONTROLEER: PV, ballast, doorvoeren, blusprocedure.', 'controleer');
 
       case 'sandwich':
-        if (fotoHints?.sandwich) return topic(t, 'aandacht', fotoHints.sandwich);
-        if (/industrie|opslag/i.test(functie || '')) return topic(t, 'aandacht', 'Industrieel: vraag kernisolatie sandwichpanelen (PIR/PUR/MW).');
-        return topic(t, 'onbekend', 'Isolatiebrandgedrag niet vastgesteld.');
+        return topic(t, 'onbekend', 'CONTROLEER: kernisolatie sandwichpanelen (PIR/PUR/MW) — niet uit open data.', 'controleer');
 
       default:
-        return topic(t, 'onbekend', '');
+        return topic(t, 'onbekend', 'CONTROLEER.', 'controleer');
     }
-  }
-
-  function topic(t, status, note) {
-    return { id: t.id, name: t.name, group: t.group, status, note };
   }
 
   function buildQuestions(functie, topics) {
@@ -320,8 +363,7 @@ const RiskEngine = (() => {
     const extra = FUNCTIE_VRAGEN[functie] || [];
     extra.forEach(e => qs.push({ id: e.id, text: e.text, waarom: e.waarom }));
 
-    // Prioritize unknowns
-    const unknownIds = new Set(topics.filter(t => t.status === 'onbekend' || t.status === 'aandacht').map(t => t.id));
+    const unknownIds = new Set(topics.filter(t => t.zekerheid !== 'feit').map(t => t.id));
     return qs
       .map(q => ({
         vraag: q.text,
@@ -336,59 +378,74 @@ const RiskEngine = (() => {
   }
 
   function inferMaterials(pand, fotoHints, bouwjaar) {
-    const gevel = fotoHints?.materialen_gevel || ['Nader te bepalen (foto/inspectie)'];
-    const dak = fotoHints?.materialen_dak || ['Nader te bepalen'];
-    const isolatie = [];
-    if (bouwjaar) {
-      if (bouwjaar >= 1992) isolatie.push('Spouw-/dakisolatie waarschijnlijk (bouwbesluit-tijdperk)');
-      else if (bouwjaar >= 1975) isolatie.push('Mogelijk nageïsoleerd — verifiëren');
-      else isolatie.push('Oudere bouw: isolatie vaak beperkt of later aangebracht');
-    }
-    if (fotoHints?.isolatie) isolatie.push(...fotoHints.isolatie);
     return {
-      gevel,
-      dak,
-      kozijnen: fotoHints?.kozijnen || ['Nader te bepalen'],
-      isolatie,
-      gebruiksdoel_bag: pand?.gebruiksdoel || []
+      gevel: [{ tekst: 'Niet vastgesteld uit open data', zekerheid: 'controleer' }],
+      dak: [{ tekst: 'Niet vastgesteld uit open data', zekerheid: 'controleer' }],
+      kozijnen: [{ tekst: 'Niet vastgesteld uit open data', zekerheid: 'controleer' }],
+      isolatie: bouwjaar
+        ? [{
+            tekst: `BAG-bouwjaar ${bouwjaar} (feit). Isolatieniveau CONTROLEER op object — niet afleiden uit jaartal alleen.`,
+            zekerheid: 'controleer'
+          }]
+        : [{ tekst: 'CONTROLEER isolatie op object', zekerheid: 'controleer' }],
+      gebruiksdoel_bag: (pand?.gebruiksdoel || []).map(g => ({ tekst: g, zekerheid: 'feit' })),
+      foto_hint: fotoHints?.gevel
+        ? [{ tekst: fotoHints.gevel, zekerheid: 'controleer' }]
+        : []
     };
   }
 
   function collectSources(locatie, pand, brandweer, water, extra) {
     const s = [];
-    if (locatie?.bron) s.push({ naam: 'Adres', detail: locatie.bron });
-    if (pand?.bron) s.push({ naam: 'Pand', detail: pand.bron });
-    if (brandweer?.length) s.push({ naam: 'Brandweerkazernes', detail: brandweer[0].bron });
-    if (water?.bron) s.push({ naam: 'Watervoorziening', detail: water.bron });
-    if (extra?.cbs?.bron) s.push({ naam: 'CBS buurt', detail: extra.cbs.bron });
-    if (extra?.perceel?.bron) s.push({ naam: 'Kadaster', detail: extra.perceel.bron });
-    if (extra?.wegen?.bron) s.push({ naam: 'NWB wegen', detail: extra.wegen.bron });
-    if (extra?.weer?.bron) s.push({ naam: 'Weer/hoogte', detail: extra.weer.bron });
-    s.push({ naam: 'Checklist', detail: 'RiskWalk / risicodeskundige praktijk' });
+    if (locatie?.bron) s.push({ naam: 'Adres', detail: locatie.bron, zekerheid: 'feit' });
+    if (pand?.bron) s.push({ naam: 'Pand', detail: pand.bron, zekerheid: 'feit' });
+    if (brandweer?.length) {
+      s.push({
+        naam: 'Brandweerkazernes',
+        detail: `${brandweer[0].bron} — afstand hemelsbreed=feit, opkomsttijd=schatting`,
+        zekerheid: 'schatting'
+      });
+    }
+    if (water?.bron) s.push({ naam: 'Watervoorziening', detail: water.bron, zekerheid: 'schatting' });
+    if (extra?.cbs?.bron) s.push({ naam: 'CBS buurt', detail: extra.cbs.bron, zekerheid: 'feit' });
+    if (extra?.perceel?.bron) s.push({ naam: 'Kadaster', detail: extra.perceel.bron, zekerheid: 'feit' });
+    if (extra?.wegen?.bron) s.push({ naam: 'NWB wegen', detail: extra.wegen.bron + ' (indicatie)', zekerheid: 'schatting' });
+    if (extra?.weer?.bron) s.push({ naam: 'Weer/hoogte', detail: extra.weer.bron + ' — LIWO-proxy=schatting', zekerheid: 'schatting' });
+    s.push({ naam: 'Checklist', detail: 'RiskWalk-onderwerpen — status pas feit na inspectie/antwoord', zekerheid: 'controleer' });
     return s;
   }
 
-  function writeConclusion({ niveau, score, nearest, riskClass, pand, functie, openstaand, tekortkomingen, cbs, weer }) {
+  function writeConclusion({ niveau, score, nearest, riskClass, pand, functie, openstaand, tekortkomingen, feiten, teControleren, cbs, weer }) {
+    const harde = [];
+    if (pand?.bouwjaar) harde.push(`BAG-bouwjaar ${pand.bouwjaar}, status “${pand.status || '?'}”`);
+    if (nearest) harde.push(`dichtstbijzijnde kazerne ${nearest.name} op ${nearest.distance_km} km hemelsbreed`);
+    if (cbs?.bevolkingsdichtheid != null) {
+      harde.push(`CBS-buurt ${cbs.bevolkingsdichtheid} inw/km², ${cbs.bedrijfsvestigingen ?? '?'} bedrijven`);
+    }
+    if (weer?.elevation_m != null) harde.push(`Open-Meteo hoogte ${weer.elevation_m} m`);
+
     const parts = [];
-    parts.push(`Risiconiveau ${niveau.toUpperCase()} (score ${score}/100) voor functie “${functie || 'onbekend'}”.`);
-    if (pand?.bouwjaar) parts.push(`BAG-bouwjaar ${pand.bouwjaar}, status “${pand.status || '?'}”.`);
-    if (nearest) parts.push(`Dichtstbijzijnde kazerne: ${nearest.name} (±${nearest.duration_min} min, opkomstklasse ${riskClass}).`);
-    if (cbs?.bevolkingsdichtheid) parts.push(`CBS blootstelling: ${cbs.bevolkingsdichtheid} inw/km², ${cbs.bedrijfsvestigingen ?? '?'} bedrijven.`);
-    if (weer?.elevation_m != null) parts.push(`Hoogte ±${weer.elevation_m} m (overstromingsproxy ${weer.overstroming_hoogte_proxy}).`);
-    parts.push(`${tekortkomingen.length} aandacht-/tekortpunten, ${openstaand.length} onderwerpen nog onbekend — deze bepalen de inspectieagenda.`);
+    parts.push(`Inspectiescore ${score}/100 (${niveau}) — dit is géén verzekeringsadvies, alleen openstaande controlepunten.`);
+    if (functie) parts.push(`Formulierfunctie “${functie}” — CONTROLEER of dit klopt op locatie.`);
+    if (harde.length) parts.push(`Harde feiten: ${harde.join('; ')}.`);
+    if (nearest) {
+      parts.push(`SCHATTING opkomst ±${nearest.duration_min} min / klasse “${riskClass}” — verifiëren bij veiligheidsregio.`);
+    }
+    parts.push(`${feiten.length} checklistpunten met harde bron; ${teControleren.length} punten CONTROLEER/SCHATTING (${openstaand.length} nog onbekend).`);
     return parts.join(' ');
   }
 
-  /** Eenvoudige foto-hints zonder AI (bestandsnaam / gebruiker kan later GPT koppelen) */
+  /** Geen verzonnen materiaalkennis — alleen wat de gebruiker expliciet moet controleren */
   function demoFotoHints(functie) {
     return {
-      constructie: 'Vermoedelijk traditioneel metselwerk of beton (niet geverifieerd)',
-      gevel: 'Gevelmateriaal uit foto niet hard vastgesteld — controleer brandklasse',
-      materialen_gevel: ['Nader te inspecteren'],
-      materialen_dak: ['Nader te inspecteren'],
-      kozijnen: ['Nader te inspecteren'],
+      constructie: null,
+      gevel: null,
+      materialen_gevel: [],
+      materialen_dak: [],
+      kozijnen: [],
       isolatie: [],
-      sandwich: /industrie|opslag/i.test(functie || '') ? 'Let op sandwichpanelen bij hallen' : null
+      sandwich: null,
+      bouwjaar: null
     };
   }
 

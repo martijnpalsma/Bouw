@@ -147,6 +147,14 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
     font-size: 0.75rem; padding: 0.28rem 0.6rem; border-radius: 999px;
     background: var(--sand); font-weight: 500;
 }
+.chip.feit { background: #d5e8dc; color: #1e4d32; }
+.chip.controleer { background: #f5d9c8; color: #6b3410; }
+.chip.schatting { background: #e2e8f0; color: #334155; }
+.legend-row {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin: 0 0 0.85rem;
+}
+.topic-badges { display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: flex-end; }
 .chip.ok { background: #d5e8dc; color: #1e4630; }
 .chip.warn { background: #f5d9c8; color: #7a3414; }
 .chip.source { background: #dce6f2; color: #1e3350; }
@@ -310,6 +318,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
     border-bottom: 1px solid var(--line);
     font-size: 0.88rem;
     display: grid;
-    grid-template-columns: 28px 1fr;
-    gap: 0.5rem;
+    grid-template-columns: auto 1fr;
+    gap: 0.55rem;
+    align-items: start;
 }

@@ -78,10 +78,10 @@
 
       const oad = extra.cbs?.omgevingsadressendichtheid;
       const stedelijk = typeof oad === 'number' ? oad >= 1500 : true;
-      const water = OpenData.schatWatervoorziening(stedelijk);
+      const water = OpenData.schatWatervoorziening(locatie.lat, locatie.lon, stedelijk);
       const fotoHints = RiskEngine.demoFotoHints(functie);
       if (selectedFile) {
-        fotoHints.gevel = 'Foto geüpload — visuele AI-analyse optioneel via Flask; checklist hieronder is leidend.';
+        fotoHints.gevel = 'Foto geüpload — géén automatische materiaalclaim. CONTROLEER op locatie of via GPT-foto (Flask).';
       }
 
       loadingText.textContent = 'Bouwt risicodeskundige rapportage…';
@@ -104,6 +104,7 @@
 
   const statusLabel = { ok: 'In orde', aandacht: 'Aandacht', tekort: 'Tekort', onbekend: 'Onbekend' };
   const statusIcon = { ok: '✅', aandacht: '⚠️', tekort: '❌', onbekend: '❔' };
+  const zekerLabel = { feit: 'FEIT', controleer: 'CONTROLEER', schatting: 'SCHATTING' };
   const GROUP_ORDER = ['Algemeen', 'Bouwkundig', 'Installaties', 'Brand', 'Speciaal risico', 'Organisatie', 'Security', 'Elementair', 'Taxatie'];
   const GROUP_HINTS = {
     Algemeen: 'Vastleggen wat er feitelijk gebeurt en welke objecten er zijn.',
@@ -129,19 +130,26 @@
     Object.keys(groups).forEach(g => { if (!groupNames.includes(g)) groupNames.push(g); });
 
     const counts = {
-      tekort: (r.tekortkomingen || []).filter(t => t.status === 'tekort').length,
-      aandacht: (r.tekortkomingen || []).filter(t => t.status === 'aandacht').length,
+      feit: (r.feiten || []).length,
+      controleer: (r.teControleren || []).filter(t => t.zekerheid === 'controleer').length,
+      schatting: (r.teControleren || []).filter(t => t.zekerheid === 'schatting').length,
       onbekend: (r.openstaand || []).length
     };
 
     results.innerHTML = `
       <div class="risk-banner ${r.niveau}">
         <div>
-          <div style="opacity:.85;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em">Risiconiveau</div>
+          <div style="opacity:.85;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em">Inspectiescore (geen advies)</div>
           <strong>${r.niveau.toUpperCase()}</strong>
-          <div style="opacity:.9;font-size:.85rem;margin-top:.25rem">${escapeHtml(L.weergavenaam || '')} · ${escapeHtml(r.functie || '')}</div>
+          <div style="opacity:.9;font-size:.85rem;margin-top:.25rem">${escapeHtml(L.weergavenaam || '')} · functie CONTROLEER: ${escapeHtml(r.functie || '')}</div>
         </div>
         <div class="score">${r.score}</div>
+      </div>
+
+      <div class="legend-row">
+        <span class="chip feit">FEIT = open data / jouw antwoord</span>
+        <span class="chip controleer">CONTROLEER = nog verifiëren</span>
+        <span class="chip schatting">SCHATTING = model / indicatie</span>
       </div>
 
       <nav class="tabs-bar" id="mainTabs" role="tablist">
@@ -196,26 +204,34 @@
   }
 
   function panelOverzicht(r, counts) {
-    const tekort = (r.tekortkomingen || []).filter(t => t.status === 'tekort');
-    const aandacht = (r.tekortkomingen || []).filter(t => t.status === 'aandacht');
+    const agenda = (r.teControleren || []).slice(0, 12);
     return `
       <div class="stat-row">
-        <div class="stat-card"><div class="label">Score</div><div class="value">${r.score}</div></div>
-        <div class="stat-card"><div class="label">Tekort</div><div class="value">${counts.tekort}</div></div>
-        <div class="stat-card"><div class="label">Aandacht</div><div class="value">${counts.aandacht}</div></div>
+        <div class="stat-card"><div class="label">Feiten</div><div class="value">${counts.feit}</div></div>
+        <div class="stat-card"><div class="label">Controleer</div><div class="value">${counts.controleer}</div></div>
+        <div class="stat-card"><div class="label">Schatting</div><div class="value">${counts.schatting}</div></div>
         <div class="stat-card"><div class="label">Onbekend</div><div class="value">${counts.onbekend}</div></div>
       </div>
+      <p class="muted" style="margin-bottom:.75rem">${escapeHtml(r.score_toelichting || '')}</p>
       <p style="font-size:.92rem;margin-bottom:1rem">${escapeHtml(r.conclusie || '')}</p>
-      <h3 style="font-size:.85rem;margin-bottom:.5rem;color:var(--steel)">Inspectieagenda</h3>
+      <h3 style="font-size:.85rem;margin-bottom:.5rem;color:var(--steel)">Te controleren</h3>
       <ul class="summary-list">
-        ${[...tekort, ...aandacht].slice(0, 10).map(t => `
-          <li><span>${statusIcon[t.status]}</span><div><strong>${escapeHtml(t.name)}</strong><br><span class="muted">${escapeHtml(t.note || '')}</span></div></li>
-        `).join('') || '<li><span>❔</span><div>Nog geen aandachtspunten — bekijk Checklist.</div></li>'}
+        ${agenda.map(t => `
+          <li><span class="chip ${t.zekerheid}">${zekerLabel[t.zekerheid] || 'CONTROLEER'}</span>
+          <div><strong>${escapeHtml(t.name)}</strong><br><span class="muted">${escapeHtml(t.note || '')}</span></div></li>
+        `).join('') || '<li><span>✅</span><div>Alles heeft een harde bron of jouw antwoord.</div></li>'}
       </ul>
       <div class="btn-row" style="margin-top:1rem">
         <button type="button" class="btn-secondary" data-goto="checklist">Open checklist</button>
         <button type="button" class="btn-secondary" data-goto="vragen">Beantwoord vragen</button>
       </div>`;
+  }
+
+  function matChip(m) {
+    if (m && typeof m === 'object') {
+      return `<span class="chip ${m.zekerheid || 'controleer'}">${escapeHtml(m.tekst || '')}</span>`;
+    }
+    return `<span class="chip controleer">${escapeHtml(m)}</span>`;
   }
 
   function panelObject(r) {
@@ -246,14 +262,16 @@
         <dt>Perceel</dt><dd>${escapeHtml([perc.kadastrale_gemeente, perc.sectie, perc.perceelnummer].filter(Boolean).join(' '))} · ${perc.grootte_m2 ?? '?'} m²</dd>
       </dl>` : ''}
       <h3 style="font-size:.9rem;margin:1rem 0 .5rem;color:var(--steel)">🏗️ Materialen & isolatie</h3>
+      <p class="muted" style="margin-bottom:.4rem">Alleen BAG-gebruiksdoel is feit. Materialen altijd controleren.</p>
       <div class="chips">
-        ${(r.materialen?.gevel || []).map(m => `<span class="chip">${escapeHtml(m)}</span>`).join('')}
-        ${(r.materialen?.dak || []).map(m => `<span class="chip">${escapeHtml(m)}</span>`).join('')}
-        ${(r.materialen?.kozijnen || []).map(m => `<span class="chip">${escapeHtml(m)}</span>`).join('')}
+        ${(r.materialen?.gebruiksdoel_bag || []).map(matChip).join('') || '<span class="chip controleer">Geen BAG-gebruiksdoel</span>'}
       </div>
       <div class="chips">
-        ${(r.materialen?.isolatie || []).map(m => `<span class="chip ok">${escapeHtml(m)}</span>`).join('')}
-        ${(r.materialen?.gebruiksdoel_bag || []).map(m => `<span class="chip source">${escapeHtml(m)}</span>`).join('')}
+        ${(r.materialen?.gevel || []).map(matChip).join('')}
+        ${(r.materialen?.dak || []).map(matChip).join('')}
+        ${(r.materialen?.kozijnen || []).map(matChip).join('')}
+        ${(r.materialen?.isolatie || []).map(matChip).join('')}
+        ${(r.materialen?.foto_hint || []).map(matChip).join('')}
       </div>`;
   }
 
@@ -263,12 +281,13 @@
     const wegen = r.extra?.wegen;
     return `
       ${c ? `
-      <h3 style="font-size:.9rem;margin-bottom:.5rem;color:var(--steel)">📊 CBS buurt</h3>
+      <h3 style="font-size:.9rem;margin-bottom:.5rem;color:var(--steel)">📊 CBS buurt <span class="chip feit">FEIT</span></h3>
+      <p class="muted" style="margin-bottom:.5rem">Buurtcijfers — niet automatisch gelijk aan dit pand.</p>
       <div class="stat-row">
         <div class="stat-card"><div class="label">Dichtheid</div><div class="value small">${c.bevolkingsdichtheid ?? '—'} /km²</div></div>
         <div class="stat-card"><div class="label">Bedrijven</div><div class="value">${c.bedrijfsvestigingen ?? '—'}</div></div>
-        <div class="stat-card"><div class="label">WOZ ±</div><div class="value small">${c.gemiddelde_woningwaarde_k != null ? '€' + (c.gemiddelde_woningwaarde_k * 1000).toLocaleString('nl-NL') : '—'}</div></div>
-        <div class="stat-card"><div class="label">Gas</div><div class="value small">${c.perc_aardgaswoningen ?? '—'}%</div></div>
+        <div class="stat-card"><div class="label">WOZ buurt</div><div class="value small">${c.gemiddelde_woningwaarde_k != null ? '€' + (c.gemiddelde_woningwaarde_k * 1000).toLocaleString('nl-NL') : '—'}</div></div>
+        <div class="stat-card"><div class="label">Gas buurt</div><div class="value small">${c.perc_aardgaswoningen ?? '—'}%</div></div>
       </div>
       <dl class="kv">
         <dt>Buurt</dt><dd>${escapeHtml(c.buurtnaam || '—')} (${escapeHtml(c.buurtcode || '')})</dd>
@@ -277,17 +296,18 @@
         <dt>Bron</dt><dd><span class="chip source">${escapeHtml(c.bron || '')}</span></dd>
       </dl>` : '<p class="muted">Geen CBS-data.</p>'}
       ${wegen ? `
-      <h3 style="font-size:.9rem;margin:1rem 0 .5rem;color:var(--steel)">🗺️ Bereikbaarheid (NWB)</h3>
+      <h3 style="font-size:.9rem;margin:1rem 0 .5rem;color:var(--steel)">🗺️ Bereikbaarheid (NWB) <span class="chip schatting">SCHATTING</span></h3>
       <dl class="kv">
-        <dt>Indicatie</dt><dd>${escapeHtml(wegen.bereikbaarheid_indicatie || '')}</dd>
+        <dt>Indicatie</dt><dd>${escapeHtml(wegen.bereikbaarheid_indicatie || '')} — CONTROLEER TS-toegang</dd>
         <dt>Straten</dt><dd>${escapeHtml((wegen.straten || []).join(', ') || '—')}</dd>
       </dl>` : ''}
       ${w ? `
       <h3 style="font-size:.9rem;margin:1rem 0 .5rem;color:var(--steel)">🌧️ Weer & hoogte</h3>
       <dl class="kv">
-        <dt>Hoogte</dt><dd>${w.elevation_m ?? '—'} m · proxy <strong>${escapeHtml(w.overstroming_hoogte_proxy || '')}</strong></dd>
-        <dt>Neerslag 7d</dt><dd>max ${w.max_neerslag_7d_mm ?? '—'} mm (${escapeHtml(w.water_neerslag_indicatie || '')})</dd>
-        <dt>Wind 7d</dt><dd>stoten ${w.max_windstoten_7d_kmh ?? '—'} km/h (${escapeHtml(w.storm_indicatie || '')})</dd>
+        <dt>Hoogte <span class="chip feit">FEIT</span></dt><dd>${w.elevation_m ?? '—'} m (Open-Meteo)</dd>
+        <dt>Overstroming <span class="chip schatting">SCHATTING</span></dt><dd>proxy “${escapeHtml(w.overstroming_hoogte_proxy || '')}” — CONTROLEER LIWO / waterschap</dd>
+        <dt>Neerslag 7d <span class="chip feit">FEIT</span></dt><dd>max ${w.max_neerslag_7d_mm ?? '—'} mm</dd>
+        <dt>Wind 7d <span class="chip feit">FEIT</span></dt><dd>stoten ${w.max_windstoten_7d_kmh ?? '—'} km/h</dd>
       </dl>
       <div class="chips">${(w.dagen || []).slice(0, 7).map(d =>
         `<span class="chip">${escapeHtml((d.datum || '').slice(5))}: ${d.neerslag_mm ?? 0}mm / ${d.stoten_kmh ?? '—'}km/h</span>`
@@ -302,26 +322,29 @@
     return `
       ${nearest ? `
       <div class="stat-row">
-        <div class="stat-card"><div class="label">Afstand</div><div class="value small">${nearest.distance_km} km</div></div>
-        <div class="stat-card"><div class="label">Opkomst</div><div class="value small">±${nearest.duration_min} min</div></div>
-        <div class="stat-card"><div class="label">Klasse</div><div class="value small">${escapeHtml(B.riskClass || '')}</div></div>
+        <div class="stat-card"><div class="label">Afstand FEIT</div><div class="value small">${nearest.distance_km} km</div></div>
+        <div class="stat-card"><div class="label">Opkomst SCHATTING</div><div class="value small">±${nearest.duration_min} min</div></div>
+        <div class="stat-card"><div class="label">Klasse SCHATTING</div><div class="value small">${escapeHtml(B.riskClass || '')}</div></div>
       </div>
       <dl class="kv">
         <dt>Kazerne</dt><dd>${escapeHtml(nearest.name)} (${escapeHtml(nearest.type)})</dd>
         <dt>Adres</dt><dd>${escapeHtml(nearest.address || '')}</dd>
         <dt>Bron</dt><dd><span class="chip source">${escapeHtml(nearest.bron || '')}</span></dd>
       </dl>
+      <p class="muted">Afstand = hemelsbreed. Opkomst/klasse = model — CONTROLEER bij veiligheidsregio.</p>
       <h3 style="font-size:.85rem;margin:1rem 0 .4rem">Andere kazernes</h3>
       ${(B.stations || []).slice(1, 6).map(s =>
-        `<div style="padding:.35rem 0;border-bottom:1px solid var(--line);font-size:.88rem">${escapeHtml(s.name)} · ${s.distance_km} km · ±${s.duration_min} min</div>`
+        `<div style="padding:.35rem 0;border-bottom:1px solid var(--line);font-size:.88rem">${escapeHtml(s.name)} · ${s.distance_km} km (feit) · ±${s.duration_min} min (schatting)</div>`
       ).join('')}` : '<p>Geen kazerne gevonden.</p>'}
-      <h3 style="font-size:.9rem;margin:1rem 0 .4rem;color:var(--steel)">💧 Watervoorziening</h3>
+      <h3 style="font-size:.9rem;margin:1rem 0 .4rem;color:var(--steel)">💧 Watervoorziening <span class="chip schatting">SCHATTING</span></h3>
+      <p class="muted">Geen open hydrant-API — alles hieronder CONTROLEER op hydrantkaart.</p>
       ${(water.items || []).map(w => `
         <div style="padding:.45rem 0;border-bottom:1px solid var(--line);font-size:.86rem">
           <strong>${escapeHtml(w.type)}</strong> — ${escapeHtml(w.location)} · ${escapeHtml(w.distance)} · ${escapeHtml(w.capacity)}<br>
-          <span class="muted">Toegang: ${escapeHtml(w.accessibility)} · ${escapeHtml(w.zekerheid || '')}</span>
+          <span class="muted">Toegang: ${escapeHtml(w.accessibility)}</span>
+          <span class="chip schatting">SCHATTING</span>
         </div>`).join('')}
-      <div class="chips" style="margin-top:.6rem">${(water.aandacht || []).map(a => `<span class="chip warn">${escapeHtml(a)}</span>`).join('')}</div>
+      <div class="chips" style="margin-top:.6rem">${(water.aandacht || []).map(a => `<span class="chip controleer">${escapeHtml(a)}</span>`).join('')}</div>
       <p class="muted" style="margin-top:.5rem">${escapeHtml(water.bron || '')}</p>`;
   }
 
@@ -344,11 +367,15 @@
   }
 
   function topicCard(t) {
+    const z = t.zekerheid || 'controleer';
     return `
       <article class="topic-card" data-topic-id="${escapeHtml(t.id)}">
         <header>
           <h4>${statusIcon[t.status] || '❔'} ${escapeHtml(t.name)}</h4>
-          <span class="status ${t.status}">${statusLabel[t.status] || t.status}</span>
+          <div class="topic-badges">
+            <span class="chip ${z}" data-zekerheid>${zekerLabel[z] || 'CONTROLEER'}</span>
+            <span class="status ${t.status}">${statusLabel[t.status] || t.status}</span>
+          </div>
         </header>
         <p class="muted" data-note-view>${escapeHtml(t.note || '')}</p>
         <div class="topic-actions">
@@ -356,25 +383,27 @@
             `<button type="button" class="status-set ${t.status === s ? 'on-' + s : ''}" data-status="${s}">${statusLabel[s]}</button>`
           ).join('')}
         </div>
-        <textarea class="topic-note" placeholder="Inspectienotitie…">${escapeHtml(t.note || '')}</textarea>
+        <textarea class="topic-note" placeholder="Inspectienotitie (wordt feit na jouw vastlegging)…">${escapeHtml(t.note || '')}</textarea>
       </article>`;
   }
 
   function panelTaxatie(r) {
     return `
+      <p class="muted" style="margin-bottom:.75rem">Alleen perceel/CBS-blootstelling kunnen feit zijn. Waarden altijd CONTROLEER.</p>
       <dl class="kv">
-        <dt>Herbouw</dt><dd>${escapeHtml(r.taxatie?.herbouwwaarde_indicatie || '')}</dd>
-        <dt>Inventaris</dt><dd>${escapeHtml(r.taxatie?.inventaris || '')}</dd>
-        <dt>Bedrijfsschade</dt><dd>${escapeHtml(r.taxatie?.bedrijfsschade || '')}</dd>
-        <dt>Perceel</dt><dd>${r.taxatie?.perceel_m2 != null ? `${r.taxatie.perceel_m2} m²` : '—'}</dd>
-        <dt>Blootstelling</dt><dd>${escapeHtml([
+        <dt>Herbouw <span class="chip controleer">CONTROLEER</span></dt><dd>${escapeHtml(r.taxatie?.herbouwwaarde_indicatie || '')}</dd>
+        <dt>Inventaris <span class="chip controleer">CONTROLEER</span></dt><dd>${escapeHtml(r.taxatie?.inventaris || '')}</dd>
+        <dt>Bedrijfsschade <span class="chip controleer">CONTROLEER</span></dt><dd>${escapeHtml(r.taxatie?.bedrijfsschade || '')}</dd>
+        <dt>Perceel <span class="chip ${(r.taxatie?.perceel_zekerheid === 'feit') ? 'feit' : 'controleer'}">${(r.taxatie?.perceel_zekerheid === 'feit') ? 'FEIT' : 'CONTROLEER'}</span></dt>
+        <dd>${r.taxatie?.perceel_m2 != null ? `${r.taxatie.perceel_m2} m²` : '—'}</dd>
+        <dt>Blootstelling <span class="chip feit">FEIT buurt</span></dt><dd>${escapeHtml([
           r.taxatie?.blootstelling?.bevolkingsdichtheid != null ? `${r.taxatie.blootstelling.bevolkingsdichtheid} inw/km²` : null,
           r.taxatie?.blootstelling?.bedrijfsvestigingen != null ? `${r.taxatie.blootstelling.bedrijfsvestigingen} bedrijven` : null,
           r.taxatie?.blootstelling?.omgevingsadressendichtheid != null ? `OAD ${r.taxatie.blootstelling.omgevingsadressendichtheid}` : null
         ].filter(Boolean).join(' · ') || '—')}</dd>
       </dl>
-      <h3 style="font-size:.85rem;margin:1rem 0 .5rem;color:var(--steel)">Premie-drivers</h3>
-      <div class="chips">${(r.taxatie?.premie_drivers || []).map(p => `<span class="chip warn">${escapeHtml(p)}</span>`).join('') || '<span class="muted">Geen</span>'}</div>
+      <h3 style="font-size:.85rem;margin:1rem 0 .5rem;color:var(--steel)">Nog te controleren (premie-relevant)</h3>
+      <div class="chips">${(r.taxatie?.premie_drivers || []).map(p => `<span class="chip controleer">${escapeHtml(p)}</span>`).join('') || '<span class="muted">Geen</span>'}</div>
       <p style="margin-top:1rem;font-size:.9rem">${escapeHtml(r.conclusie || '')}</p>`;
   }
 
@@ -418,7 +447,11 @@
         btn.addEventListener('click', () => {
           const status = btn.dataset.status;
           const topic = (r.topics || []).find(t => t.id === id);
-          if (topic) topic.status = status;
+          if (topic) {
+            topic.status = status;
+            // Jouw inspectie-vastlegging = feit; "onbekend" blijft controleer
+            topic.zekerheid = status === 'onbekend' ? 'controleer' : 'feit';
+          }
           card.querySelectorAll('.status-set').forEach(b => {
             b.className = 'status-set' + (b.dataset.status === status ? ` on-${status}` : '');
           });
@@ -427,17 +460,26 @@
             badge.className = `status ${status}`;
             badge.textContent = statusLabel[status];
           }
+          const zChip = card.querySelector('[data-zekerheid]');
+          if (zChip && topic) {
+            zChip.className = `chip ${topic.zekerheid}`;
+            zChip.textContent = zekerLabel[topic.zekerheid] || 'CONTROLEER';
+          }
           const iconH = card.querySelector('h4');
           if (iconH) iconH.innerHTML = `${statusIcon[status] || '❔'} ${escapeHtml(topic?.name || '')}`;
-          // refresh derived lists
           r.tekortkomingen = (r.topics || []).filter(t => t.status === 'tekort' || t.status === 'aandacht');
           r.openstaand = (r.topics || []).filter(t => t.status === 'onbekend');
+          r.feiten = (r.topics || []).filter(t => t.zekerheid === 'feit');
+          r.teControleren = (r.topics || []).filter(t => t.zekerheid !== 'feit');
         });
       });
       const ta = card.querySelector('.topic-note');
       ta?.addEventListener('change', () => {
         const topic = (r.topics || []).find(t => t.id === id);
-        if (topic) topic.note = ta.value;
+        if (topic) {
+          topic.note = ta.value;
+          if (ta.value.trim() && topic.status !== 'onbekend') topic.zekerheid = 'feit';
+        }
         const view = card.querySelector('[data-note-view]');
         if (view) view.textContent = ta.value;
       });

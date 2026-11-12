@@ -1,43 +1,38 @@
 # Lokale RisicoScan — taxateur / risk engineer
 
-**Alleen lokaal.** Niets publiceren.
+**Regel:** alleen harde feiten als feit. Alles anders = **CONTROLEER** of **SCHATTING**.
 
-## Starten
+## Starten (Mac/PC)
 
 ```bash
 cd lokaal-demo && ./START-LOKAAL.sh
 # http://localhost:8765
 ```
 
-Flask (zelfde data + GPT-foto):
+## Testen op iPhone (Safari)
 
-```bash
-python3 app.py
-# POST /api/locatie  POST /api/risico  POST /api/upload
-```
+1. Start de server op je Mac/PC (zelfde wifi als je iPhone).
+2. Zoek je lokale IP:
+   - Mac: Systeeminstellingen → Netwerk, of `ipconfig getifaddr en0`
+   - Windows: `ipconfig` → IPv4-adres
+3. Open op iPhone Safari: `http://JOUW-IP:8765`
+4. Voeg toe aan beginscherm (Deel → Zet op beginscherm) voor app-achtig gebruik.
 
-## Openbare APIs (live)
+Native SwiftUI-app (Xcode vereist): map `FotoAnalyseApp/` — zie `FotoAnalyseApp/README.md`.
 
-| API | Nut voor risicodeskundige |
-|-----|---------------------------|
-| **PDOK Locatieserver** | Adres, buurt, wijk, perceelkoppeling |
-| **PDOK BAG WFS** | Bouwjaar, gebruiksdoel, oppervlakte, status |
-| **CBS Wijken & Buurten 2024** | Blootstelling: dichtheid, bedrijven, WOZ, gas%, afstand brandweer/ziekenhuis |
-| **Kadaster Kadastrale Kaart** | Perceelgrootte |
-| **RWS NWB Wegen** | TS-bereikbaarheid / straatnet |
-| **OSM + curated kazernes** | Opkomstschatting brandweer |
-| **Open-Meteo** | Hoogte (overstromingsproxy), wind/neerslag 7 dagen |
+## Openbare APIs
 
-## Nog schatting / niet open
-
-- Bluswater/hydranten (geen betrouwbare open API)
-- Officiële LIWO-overstromingskaarten (proxy via hoogte)
-- Externe veiligheid BRZO/buisleidingen (later)
+| API | Zekerheid |
+|-----|-----------|
+| PDOK Locatieserver / BAG WFS | **FEIT** |
+| CBS Wijken & Buurten | **FEIT** (buurt ≠ object) |
+| Kadaster perceel | **FEIT** |
+| OSM / curated kazerne + hemelsbrede afstand | **FEIT** afstand / naam |
+| Opkomsttijd / risicoklasse | **SCHATTING** |
+| NWB bereikbaarheid | **SCHATTING** — CONTROLEER |
+| Open-Meteo hoogte / weer | **FEIT** metingen; overstromingslabel = **SCHATTING** |
+| Bluswater / hydranten | **SCHATTING** — altijd CONTROLEER |
 
 ## Checklist
 
-24 RiskWalk-onderwerpen + functie-specifieke vragen, score, taxatie, JSON-export.
-
-## Screenshots
-
-`screenshots/risicoscan-v2-*.png` en `/opt/cursor/artifacts/`
+24 RiskWalk-onderwerpen. Status pas **FEIT** na jouw inspectie-antwoord.

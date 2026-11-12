@@ -2,8 +2,27 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Bouw Informatie Systeem - Startpagina</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- iOS Safari Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bouw System">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%23667eea'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='white'%3E🏗️%3C/text%3E%3C/svg%3E">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="msapplication-TileColor" content="#667eea">
+    
+    <!-- Description -->
+    <meta name="description" content="Complete bouw informatie systeem met brandweer, watervoorziening, gebouwmaterialen en open data agents">
+    
+    <!-- Touch Icons -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏗️%3C/text%3E%3C/svg%3E">
     <style>
         * {
             margin: 0;
@@ -432,78 +451,77 @@
     <div class="container">
         <div class="header">
             <h1>🏗️ Bouw Informatie Systeem</h1>
-            <p>Welkom bij het complete systeem voor bouw- en gebouwbeheer</p>
+            <p>Alles wat een risicodeskundige moet weten — BAG, vloer, buren, water, brandweer en meer</p>
         </div>
 
         <!-- Getting Started Sectie -->
         <div class="getting-started">
             <h2>🚀 Welke Gegevens Heb Je Nodig?</h2>
-            <p class="subtitle">Om alle agents optimaal te laten draaien, heb je de volgende basisgegevens nodig:</p>
+            <p class="subtitle">Voor een volledig risicodossier volstaat vaak alleen postcode + huisnummer. De rest komt uit open data of jouw inspectie.</p>
 
             <div class="required-data">
                 <h3>📋 Vereiste Basisgegevens</h3>
                 <div class="data-list">
                     <div class="data-item">
-                        <h4>📍 Locatie Gegevens</h4>
+                        <h4>📍 Locatie (minimaal)</h4>
                         <ul>
                             <li><strong>Postcode</strong> (bijv. 1234 AB)</li>
                             <li><strong>Huisnummer</strong> (bijv. 45)</li>
-                            <li>Straatnaam (optioneel)</li>
-                            <li>Plaatsnaam (optioneel)</li>
+                            <li>Toevoeging / plaats (optioneel)</li>
+                            <li>Object- of bedrijfsnaam (optioneel)</li>
                         </ul>
                     </div>
 
                     <div class="data-item">
-                        <h4>🏢 Gebouw Informatie</h4>
+                        <h4>🏢 Wat het dossier ophaalt</h4>
                         <ul>
-                            <li><strong>Gebouw Type</strong> (woning, kantoor, etc.)</li>
-                            <li><strong>Oppervlakte</strong> in m²</li>
-                            <li><strong>Aantal Verdiepingen</strong></li>
-                            <li>Bouwniveau (basis tot luxe)</li>
-                            <li>Duurzaamheidsniveau gewenst</li>
+                            <li><strong>BAG</strong> — gebruiksdoel, bouwjaar, oppervlakte</li>
+                            <li><strong>Buren</strong> — nabije panden (geen namen)</li>
+                            <li><strong>Water &amp; brandweer</strong> — opkomst, bluswater</li>
+                            <li><strong>BRO / CBS / PDOK</strong> — bodem, buurt, bestemming</li>
                         </ul>
                     </div>
 
                     <div class="data-item">
-                        <h4>📏 Afmetingen</h4>
+                        <h4>✍️ Wat jij zelf invult</h4>
                         <ul>
-                            <li>Breedte van het gebouw</li>
-                            <li>Lengte van het gebouw</li>
-                            <li>Verdiepingshoogte</li>
-                            <li>Specifieke ruimte afmetingen</li>
+                            <li>Bezetting / BHV / nachtgebruik</li>
+                            <li>Gemeten BVO (via meet-agent)</li>
+                            <li>Inspectiethema’s &amp; foto’s</li>
+                            <li><strong>Geen BRP</strong> — geen persoonsgegevens</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
             <div class="workflow-diagram">
-                <h3>🔄 Aanbevolen Workflow</h3>
+                <h3>🔄 Aanbevolen Workflow (risicodeskundige)</h3>
                 <p style="text-align: center; color: #6c757d; margin-bottom: 2rem;">
-                    Volg deze volgorde voor een complete analyse van je bouwproject:
+                    Start bij het risicodossier; zoom daarna in via gespecialiseerde agents of RiskWalk (iOS).
                 </p>
                 <div class="workflow-steps">
                     <div class="workflow-step">
-                        📋<br>1. Gebouw<br>Formulier
+                        🛡️<br>1. Risico<br>Dossier
                     </div>
                     <div class="workflow-arrow">→</div>
                     <div class="workflow-step">
-                        📊<br>2. Open Data<br>Agent
+                        📊<br>2. Open Data<br>/ BAG
                     </div>
                     <div class="workflow-arrow">→</div>
                     <div class="workflow-step">
-                        📏<br>3. Meet<br>Agent
+                        🚒<br>3. Brandweer<br>&amp; water
                     </div>
                     <div class="workflow-arrow">→</div>
                     <div class="workflow-step">
-                        🧱<br>4. Materialen<br>Agent
+                        📏<br>4. Meet<br>BVO
                     </div>
                     <div class="workflow-arrow">→</div>
                     <div class="workflow-step">
-                        🚒<br>5. Brandweer<br>Agent
+                        📋<br>5. Inspectie<br>formulier
                     </div>
                     <div class="workflow-arrow">→</div>
                     <div class="workflow-step">
-                        🏢<br>6. Bouw<br>Systeem
+                        📱<br>6. RiskWalk<br>(iOS)
                     </div>
                 </div>
             </div>
@@ -511,17 +529,17 @@
             <div class="info-box">
                 <div class="info-box-icon">💡</div>
                 <div class="info-box-content">
-                    <h4>Tip: Start met het Gebouw Formulier</h4>
+                    <h4>Tip: Start met het Risicodossier</h4>
                     <p>
-                        Begin bij het <strong>Gebouw Formulier Agent</strong> om alle basisgegevens in te voeren. 
-                        Deze data wordt automatisch doorgegeven aan de andere agents. Je kunt agents ook individueel 
-                        gebruiken als je specifieke informatie nodig hebt!
+                        Open de <strong>Risicodossier Agent</strong> met alleen postcode + huisnummer.
+                        Je krijgt BAG, vloeroppervlakte, buren, water/brandweer en omgeving in één scherm — geoptimaliseerd voor iPhone.
+                        BRP-personen worden bewust niet opgehaald.
                     </p>
                 </div>
             </div>
 
-            <a href="gebouw-formulier.html" class="start-button">
-                🚀 Start met Gebouw Formulier
+            <a href="risico-dossier-agent.html" class="start-button">
+                🛡️ Start Risicodossier
             </a>
         </div>
 
@@ -547,6 +565,13 @@
             <h2 style="color: white; text-align: center; margin: 3rem 0 2rem; font-size: 2rem;">📋 Geregistreerde Agents</h2>
             
             <div class="page-grid">
+                <a href="risico-dossier-agent.html" class="page-card" style="border: 3px solid #3db8a8; background: linear-gradient(135deg, #e8f8f6 0%, #ffffff 100%);">
+                    <div class="icon">🛡️</div>
+                    <h3 style="color: #1a3a4a;">Risicodossier Agent</h3>
+                    <p style="color: #1a3a4a;">Alles voor de risicodeskundige: BAG, vloeroppervlakte, buren, water, brandweer, BRO/CBS — zonder BRP.</p>
+                    <span class="btn" style="background: #1a3a4a;">Open Dossier</span>
+                </a>
+
                 <a href="gebouw-formulier.html" class="page-card">
                     <div class="icon">📋</div>
                     <h3>Gebouw Formulier Agent</h3>

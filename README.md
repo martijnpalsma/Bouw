@@ -38,6 +38,13 @@ Dit systeem biedt een complete agent orchestration platform waar je meerdere age
 
 ## 🚀 Geregistreerde Agents
 
+### 0. Risicodossier Agent *(aanbevolen start)*
+**Type**: Analysis Agent  
+**Functie**: Compleet dossier voor risicodeskundigen — BAG, vloeroppervlakte, buren, water/brandweer, BRO/CBS, bezetting (geen BRP)  
+**Inputs**: postcode, huisnummer  
+**Outputs**: bag, neighbors, fireWater, vloer, omgeving, occupancy, scores  
+**Bestand**: `risico-dossier-agent.html` · zie `RISICODOSSIER.md`
+
 ### 1. Gebouw Formulier Agent
 **Type**: Input Agent  
 **Functie**: Verzamelt gebouwinformatie en constructiedetails  
@@ -54,6 +61,9 @@ Dit systeem biedt een complete agent orchestration platform waar je meerdere age
 **Functie**: Genereert overzichten en rapporten  
 **Inputs**: gebouwData, brandweerData  
 **Outputs**: rapport, pdf
+
+### 4–6. Open Data · Meet · Gebouwmaterialen
+Zie `open-data-agent.html`, `meet-agent.html`, `gebouwmaterialen-agent.html`.
 
 ## 🔄 Agent Communicatie
 
@@ -93,6 +103,7 @@ targetWindow.postMessage({
 │   └── PRIVACY_SECURITY.md
 │
 ├── index.html                          # Hoofdpagina (web agents)
+├── risico-dossier-agent.html           # Compleet risicodossier (BAG, buren, water, …)
 ├── agent-platform.html                 # Agent dashboard
 ├── agent-workflow-builder.html         # Workflow builder
 ├── agent-template.html                 # Agent template
@@ -101,6 +112,9 @@ targetWindow.postMessage({
 ├── gebouw-formulier.html              # Gebouw formulier agent
 ├── brandweer-watervoorziening.html    # Brandweer agent
 ├── bouw-informatie-systeem.html       # Bouw systeem agent
+├── open-data-agent.html               # Open data (BAG, BRO, PDOK, CBS)
+├── meet-agent.html                    # Oppervlakte / volume
+├── gebouwmaterialen-agent.html        # Materialen & kosten
 │
 ├── README.md                           # Deze documentatie
 ├── AGENT_DEVELOPER_GUIDE.md           # Developer guide
@@ -110,6 +124,10 @@ targetWindow.postMessage({
 ### iOS-app (RiskWalk)
 
 Open `RiskWalk/RiskWalk.xcodeproj` in Xcode. Privacy- en securitymaatregelen staan in `RiskWalk/PRIVACY_SECURITY.md`.
+
+### Web risicodossier (iPhone)
+
+Open `risico-dossier-agent.html` voor het complete dossier dat een risicodeskundige nodig heeft: BAG, vloeroppervlakte, buren, water/brandweer, bodem, buurtcijfers — zonder BRP-persoonsgegevens.
 
 ## 🎯 Quick Start
 

@@ -57,58 +57,38 @@ def analyze_building_image(image_path, conversation_history=None):
         
         # System prompt voor gedetailleerde gebouwanalyse
         if not conversation_history or len(conversation_history) == 0:
-            system_prompt = """Je bent een expert bouwkundige en constructie-analist. 
-            Analyseer de gebouwfoto's grondig en geef gedetailleerde informatie over:
+            system_prompt = """Je bent een ervaren Nederlandse risicodeskundige / taxateur (brand & bedrijfsschade).
+            Analyseer gebouwfoto's alsof je een inspectie voorbereidt voor verzekering/taxatie.
 
-            1. CONSTRUCTIE: Type gebouw, constructiemethode, draagconstructie
-            2. MATERIALEN: Alle zichtbare bouwmaterialen (muren, dak, kozijnen, etc.)
-            3. ISOLATIE: Inschatting van isolatiematerialen en -methoden
-            4. STAAT: Conditie van het gebouw en materialen
-            5. GESCHATTE BOUWPERIODE: Op basis van architectuur en materiaalgebruik
-            
-            Als informatie onduidelijk is of je meer details nodig hebt, stel dan 
-            CONCRETE verduidelijkingsvragen aan de gebruiker.
-            
-            Geef je antwoord in VALIDE JSON formaat met deze structuur:
+            Behandel minimaal:
+            1. CONSTRUCTIE: type, draagconstructie, verdiepingen, compartimentering (indien zichtbaar)
+            2. MATERIALEN: gevel, dak, kozijnen, brandbare bekleding, sandwichpanelen
+            3. ISOLATIE: geschatte isolatie (brandgedrag relevant: PIR/PUR/minerale wol)
+            4. STAAT: onderhoud, zichtbare gebreken, brandveiligheidssignalen
+            5. BOUWPERIODE: geschatte periode + indicatoren
+            6. RISICO_CHECKLIST: status per onderwerp (ok/aandacht/tekort/onbekend):
+               Constructie, Compartimentering, Elektra, Verwarming, Branddetectie,
+               Blusmiddelen, Opslag, Accu's/laden, Gevaarlijke stoffen, Inbraak,
+               Water/storm, Brandweer/repressie, Bedrijfsschade
+            7. TAXATIE_AANDACHT: wat een taxateur nog wil weten voor premie/dekking
+
+            Stel CONCRETE verduidelijkingsvragen als iets onzeker is.
+
+            Antwoord in VALIDE JSON:
             {
-                "constructie": {
-                    "type": "string",
-                    "draagconstructie": "string",
-                    "verdiepingen": "number",
-                    "details": "string"
-                },
-                "materialen": {
-                    "gevel": ["string"],
-                    "dak": ["string"],
-                    "kozijnen": ["string"],
-                    "fundering": "string (indien zichtbaar)",
-                    "overig": ["string"]
-                },
-                "isolatie": {
-                    "geschat": ["string"],
-                    "waarschijnlijkheid": "hoog/middel/laag",
-                    "aanbevelingen": ["string"]
-                },
-                "staat": {
-                    "algemeen": "string",
-                    "onderhoud": "string",
-                    "aandachtspunten": ["string"]
-                },
-                "bouwperiode": {
-                    "geschat": "string",
-                    "indicatoren": ["string"]
-                },
-                "verduidelijkingsvragen": [
-                    {
-                        "vraag": "string",
-                        "reden": "string"
-                    }
-                ],
-                "conclusie": "string",
+                "constructie": {"type":"","draagconstructie":"","verdiepingen":0,"details":""},
+                "materialen": {"gevel":[],"dak":[],"kozijnen":[],"fundering":"","overig":[]},
+                "isolatie": {"geschat":[],"waarschijnlijkheid":"hoog/middel/laag","aanbevelingen":[]},
+                "staat": {"algemeen":"","onderhoud":"","aandachtspunten":[]},
+                "bouwperiode": {"geschat":"","indicatoren":[]},
+                "risico_checklist": [{"onderwerp":"","status":"ok|aandacht|tekort|onbekend","toelichting":""}],
+                "taxatie_aandacht": ["string"],
+                "verduidelijkingsvragen": [{"vraag":"","reden":""}],
+                "conclusie": "",
                 "betrouwbaarheid": "hoog/middel/laag"
             }
-            
-            Wees zo specifiek mogelijk en baseer je analyse op zichtbare details."""
+
+            Baseer je alleen op zichtbare details; markeer onzekerheid als onbekend."""
             
             messages.append({
                 "role": "system",

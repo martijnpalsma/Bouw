@@ -673,6 +673,17 @@
         // Agent Registry
         let agents = [
             {
+                id: 'risico-dossier-agent',
+                name: 'Risicodossier Agent',
+                icon: '🛡️',
+                type: 'analysis',
+                description: 'Compleet dossier voor risicodeskundigen: BAG, vloer, buren, water, brandweer, BRO/CBS (geen BRP)',
+                url: 'risico-dossier-agent.html',
+                status: 'active',
+                inputs: ['postcode', 'huisnummer'],
+                outputs: ['bag', 'neighbors', 'fireWater', 'vloer', 'omgeving', 'occupancy', 'scores']
+            },
+            {
                 id: 'gebouw-formulier',
                 name: 'Gebouw Formulier Agent',
                 icon: '📋',

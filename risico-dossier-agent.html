@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Risicodossier Agent — Alles voor de risicodeskundige</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a3a4a">
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        :root {
+            --bg: #0f2430;
+            --panel: #163545;
+            --panel-2: #1c4254;
+            --ink: #e8f1f5;
+            --muted: #9bb4c0;
+            --accent: #e07a3d;
+            --accent-2: #3db8a8;
+            --warn: #e0b13d;
+            --danger: #d45454;
+            --ok: #4caf7a;
+            --line: rgba(255,255,255,0.08);
+            --radius: 16px;
+            --tap: 48px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            background:
+                radial-gradient(1200px 600px at 10% -10%, #245066 0%, transparent 55%),
+                radial-gradient(900px 500px at 100% 0%, #3a2a1a 0%, transparent 50%),
+                var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            line-height: 1.45;
+            padding-bottom: 6rem;
+        }
+        a { color: var(--accent-2); }
+        .topbar {
+            position: sticky; top: 0; z-index: 20;
+            backdrop-filter: blur(12px);
+            background: rgba(15,36,48,0.88);
+            border-bottom: 1px solid var(--line);
+            padding: 0.85rem 1rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        }
+        .brand { font-weight: 700; letter-spacing: 0.02em; }
+        .brand span { color: var(--accent); }
+        .topbar nav { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .topbar a {
+            color: var(--muted); text-decoration: none; font-size: 0.85rem;
+            min-height: var(--tap); display: inline-flex; align-items: center;
+        }
+        .wrap { max-width: 920px; margin: 0 auto; padding: 1.25rem; }
+        .hero {
+            margin: 1rem 0 1.5rem;
+            padding: 1.5rem;
+            border-radius: calc(var(--radius) + 4px);
+            background: linear-gradient(145deg, rgba(61,184,168,0.18), rgba(224,122,61,0.12));
+            border: 1px solid var(--line);
+        }
+        .hero h1 { font-size: clamp(1.55rem, 4vw, 2.1rem); margin-bottom: 0.5rem; }
+        .hero p { color: var(--muted); max-width: 42rem; }
+        .privacy {
+            margin-top: 1rem; padding: 0.85rem 1rem; border-radius: 12px;
+            background: rgba(224,177,61,0.12); border: 1px solid rgba(224,177,61,0.35);
+            color: #f0dfaa; font-size: 0.92rem;
+        }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 1.15rem;
+            margin-bottom: 1rem;
+        }
+        .card h2 {
+            font-size: 1.05rem; margin-bottom: 0.85rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .badge {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 999px;
+            background: rgba(61,184,168,0.2); color: var(--accent-2);
+        }
+        .badge.warn { background: rgba(224,177,61,0.2); color: var(--warn); }
+        .badge.danger { background: rgba(212,84,84,0.2); color: #ff9a9a; }
+        .form-grid {
+            display: grid; gap: 0.75rem;
+            grid-template-columns: 1fr 1fr;
+        }
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-grid .span-2 { grid-column: auto; }
+        }
+        .span-2 { grid-column: 1 / -1; }
+        label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+        input, select, textarea {
+            width: 100%; min-height: var(--tap); border-radius: 12px;
+            border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+            padding: 0.7rem 0.9rem; font-size: 1rem;
+        }
+        textarea { min-height: 96px; resize: vertical; }
+        .actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+        button, .btn {
+            min-height: var(--tap); border: none; border-radius: 12px; cursor: pointer;
+            padding: 0.7rem 1.1rem; font-weight: 700; font-size: 0.95rem;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+            text-decoration: none; color: #102028;
+            background: linear-gradient(135deg, var(--accent), #c45f28);
+        }
+        button.secondary, .btn.secondary {
+            background: transparent; color: var(--ink); border: 1px solid var(--line);
+        }
+        button.ghost { background: rgba(61,184,168,0.15); color: var(--accent-2); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tabs {
+            display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 0.5rem;
+            margin: 0.5rem 0 1rem; -webkit-overflow-scrolling: touch;
+        }
+        .tab {
+            flex: 0 0 auto; min-height: 40px; padding: 0.45rem 0.85rem;
+            border-radius: 999px; border: 1px solid var(--line);
+            background: transparent; color: var(--muted); font-weight: 600; font-size: 0.85rem;
+        }
+        .tab.active { background: rgba(224,122,61,0.2); color: #ffd0b4; border-color: rgba(224,122,61,0.5); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .kv {
+            display: grid; grid-template-columns: 1fr 1.2fr; gap: 0.45rem 0.75rem;
+            font-size: 0.92rem;
+        }
+        .kv dt { color: var(--muted); }
+        .kv dd { font-weight: 600; word-break: break-word; }
+        .list { list-style: none; display: grid; gap: 0.65rem; }
+        .list li {
+            background: var(--panel-2); border: 1px solid var(--line);
+            border-radius: 12px; padding: 0.85rem;
+        }
+        .list .meta { color: var(--muted); font-size: 0.82rem; margin-top: 0.25rem; }
+        .score-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem; margin-top: 0.75rem;
+        }
+        @media (max-width: 560px) { .score-row { grid-template-columns: 1fr; } }
+        .score {
+            background: var(--panel-2); border-radius: 12px; padding: 0.9rem; text-align: center;
+            border: 1px solid var(--line);
+        }
+        .score strong { display: block; font-size: 1.35rem; margin: 0.2rem 0; }
+        .score.ok strong { color: var(--ok); }
+        .score.warn strong { color: var(--warn); }
+        .score.danger strong { color: #ff8c8c; }
+        .empty {
+            color: var(--muted); padding: 1.5rem; text-align: center;
+            border: 1px dashed var(--line); border-radius: 12px;
+        }
+        .toast {
+            position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 50;
+            background: #123847; border: 1px solid var(--accent-2); color: var(--ink);
+            border-radius: 14px; padding: 0.9rem 1rem; display: none;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+        }
+        .toast.show { display: block; }
+        .loading { opacity: 0.7; pointer-events: none; }
+        .chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+        .chip {
+            font-size: 0.75rem; padding: 0.25rem 0.55rem; border-radius: 999px;
+            background: rgba(255,255,255,0.06); color: var(--muted);
+        }
+        footer {
+            text-align: center; color: var(--muted); font-size: 0.8rem;
+            padding: 2rem 1rem 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">Risico<span>dossier</span></div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="agent-platform.html">Platform</a>
+            <a href="brandweer-watervoorziening.html">Brandweer</a>
+        </nav>
+    </header>
+
+    <main class="wrap">
+        <section class="hero">
+            <h1>Alles wat een risicodeskundige moet weten</h1>
+            <p>
+                Eén dossier op basis van postcode + huisnummer: BAG-gebouw, vloeroppervlakte,
+                buren, water/brandweer, bodem, buurtcijfers en bezetting — klaar voor inspectie.
+            </p>
+            <div class="privacy">
+                <strong>Privacy:</strong> Geen BRP-persoonsgegevens. We gebruiken alleen openbare
+                gebouw-/gebiedsdata (BAG, PDOK, BRO, CBS) en wat jij zelf invult over bezetting.
+                Buren = aangrenzende panden/gebruiksdoelen, geen namen van bewoners.
+            </div>
+        </section>
+
+        <section class="card" id="input-card">
+            <h2>1. Locatie <span class="badge">Start</span></h2>
+            <div class="form-grid">
+                <div>
+                    <label for="postcode">Postcode</label>
+                    <input id="postcode" name="postcode" autocomplete="postal-code" placeholder="1234 AB" inputmode="text">
+                </div>
+                <div>
+                    <label for="huisnummer">Huisnummer</label>
+                    <input id="huisnummer" name="huisnummer" placeholder="12" inputmode="numeric">
+                </div>
+                <div>
+                    <label for="toevoeging">Toevoeging</label>
+                    <input id="toevoeging" name="toevoeging" placeholder="A">
+                </div>
+                <div>
+                    <label for="plaats">Plaats (optioneel)</label>
+                    <input id="plaats" name="plaats" placeholder="Amsterdam">
+                </div>
+                <div class="span-2">
+                    <label for="objectnaam">Object / verzekerde</label>
+                    <input id="objectnaam" name="objectnaam" placeholder="Bedrijfsnaam of objectnaam">
+                </div>
+            </div>
+            <div class="actions">
+                <button type="button" id="btn-analyse">Dossier opbouwen</button>
+                <button type="button" class="secondary" id="btn-voorbeeld">Voorbeeld laden</button>
+            </div>
+        </section>
+
+        <div id="results" hidden>
+            <div class="tabs" role="tablist">
+                <button class="tab active" data-tab="samenvatting" type="button">Samenvatting</button>
+                <button class="tab" data-tab="bag" type="button">BAG</button>
+                <button class="tab" data-tab="vloer" type="button">Vloer</button>
+                <button class="tab" data-tab="buren" type="button">Buren</button>
+                <button class="tab" data-tab="water" type="button">Water &amp; brandweer</button>
+                <button class="tab" data-tab="omgeving" type="button">Omgeving</button>
+                <button class="tab" data-tab="bezetting" type="button">Bezetting</button>
+                <button class="tab" data-tab="inspectie" type="button">Inspectiethema’s</button>
+                <button class="tab" data-tab="apis" type="button">API’s</button>
+            </div>
+
+            <section class="panel active card" id="panel-samenvatting">
+                <h2>Risicosamenvatting <span class="badge" id="risk-badge">—</span></h2>
+                <p id="summary-text" style="color:var(--muted);margin-bottom:0.75rem;"></p>
+                <div class="score-row">
+                    <div class="score" id="score-fire"><span>Brandweer / bluswater</span><strong>—</strong><small></small></div>
+                    <div class="score" id="score-exposure"><span>Blootstelling buren</span><strong>—</strong><small></small></div>
+                    <div class="score" id="score-building"><span>Objectcomplexiteit</span><strong>—</strong><small></small></div>
+                </div>
+                <div class="chip-row" id="summary-chips"></div>
+                <div class="actions">
+                    <button type="button" class="ghost" id="btn-export">Exporteer JSON</button>
+                    <button type="button" class="secondary" id="btn-to-brandweer">Naar brandweer-agent</button>
+                    <button type="button" class="secondary" id="btn-to-meet">Naar meet-agent</button>
+                    <a class="btn secondary" href="gebouw-formulier.html">Open inspectieformulier</a>
+                </div>
+            </section>
+
+            <section class="panel card" id="panel-bag">
+                <h2>BAG — Gebouw &amp; adres <span class="badge">Open data</span></h2>
+                <dl class="kv" id="bag-kv"></dl>
+            </section>
+
+            <section class="panel card" id="panel-vloer">
+                <h2>Vloeroppervlakte <span class="badge">BAG + meting</span></h2>
+                <dl class="kv" id="vloer-kv"></dl>
+                <p style="color:var(--muted);margin-top:0.85rem;font-size:0.9rem;">
+                    BAG-oppervlakte is de geregistreerde VBO-oppervlakte. Voor verzekering/inspectie
+                    kun je een gemeten bruto vloeroppervlakte (BVO) toevoegen via de meet-agent.
+                </p>
+                <div class="form-grid" style="margin-top:0.85rem;">
+                    <div>
+                        <label for="bvo-override">Gemeten BVO (m²)</label>
+                        <input id="bvo-override" type="number" inputmode="decimal" placeholder="bv. 1850">
+                    </div>
+                    <div>
+                        <label for="verdiepingen-override">Verdiepingen (incl. begane grond)</label>
+                        <input id="verdiepingen-override" type="number" inputmode="numeric" placeholder="bv. 3">
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="ghost" id="btn-save-vloer">Opslaan in dossier</button>
+                </div>
+            </section>
+
+            <section class="panel card" id="panel-buren">
+                <h2>Buren &amp; aangrenzende panden <span class="badge warn">Geen BRP</span></h2>
+                <p style="color:var(--muted);margin-bottom:0.85rem;font-size:0.9rem;">
+                    Aangrenzende of nabije panden op basis van BAG/PDOK geometrie: gebruiksdoel,
+                    afstand en oppervlakte. Geen persoonsnamen.
+                </p>
+                <ul class="list" id="buren-list"></ul>
+            </section>
+
+            <section class="panel card" id="panel-water">
+                <h2>Water &amp; brandweer <span class="badge">Repressie</span></h2>
+                <dl class="kv" id="water-kv"></dl>
+                <h3 style="margin:1rem 0 0.6rem;font-size:0.95rem;">Bluswaterbronnen</h3>
+                <ul class="list" id="water-list"></ul>
+            </section>
+
+            <section class="panel card" id="panel-omgeving">
+                <h2>Omgeving — BRO / PDOK / CBS <span class="badge">Context</span></h2>
+                <dl class="kv" id="omgeving-kv"></dl>
+            </section>
+
+            <section class="panel card" id="panel-bezetting">
+                <h2>Bezetting &amp; gebruik <span class="badge warn">Zelf invullen</span></h2>
+                <p style="color:var(--muted);margin-bottom:0.85rem;font-size:0.9rem;">
+                    BRP is niet gekoppeld. Vul bezetting zelf in op basis van gesprek/inspectie.
+                    BAG-gebruiksdoel staat hieronder als startpunt.
+                </p>
+                <dl class="kv" id="gebruik-kv" style="margin-bottom:1rem;"></dl>
+                <div class="form-grid">
+                    <div>
+                        <label for="personeel">Aantal personeel (dag)</label>
+                        <input id="personeel" type="number" inputmode="numeric" min="0">
+                    </div>
+                    <div>
+                        <label for="nacht">Nachtbezetting</label>
+                        <select id="nacht">
+                            <option value="geen">Geen</option>
+                            <option value="beperkt">Beperkt</option>
+                            <option value="permanent">Permanent / 24u</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="bhv">BHV aanwezig</label>
+                        <select id="bhv">
+                            <option value="onbekend">Onbekend</option>
+                            <option value="ja">Ja</option>
+                            <option value="nee">Nee</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="zelfredzaamheid">Zelfredzaamheid gebruikers</label>
+                        <select id="zelfredzaamheid">
+                            <option value="hoog">Hoog</option>
+                            <option value="gemiddeld">Gemiddeld</option>
+                            <option value="laag">Laag (zorg/hotel/scholen)</option>
+                        </select>
+                    </div>
+                    <div class="span-2">
+                        <label for="activiteiten">Activiteiten / processen</label>
+                        <textarea id="activiteiten" placeholder="Bijv. opslag hout, lassen, frituren, EV-laden…"></textarea>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="ghost" id="btn-save-bezetting">Opslaan in dossier</button>
+                </div>
+            </section>
+
+            <section class="panel card" id="panel-inspectie">
+                <h2>Inspectiethema’s <span class="badge">RiskWalk-afgestemd</span></h2>
+                <p style="color:var(--muted);margin-bottom:0.85rem;font-size:0.9rem;">
+                    Checklist voor de ronde — gelijk aan de thema’s in RiskWalk (native iOS-app).
+                </p>
+                <ul class="list" id="topics-list"></ul>
+            </section>
+
+            <section class="panel card" id="panel-apis">
+                <h2>Bronnen &amp; API’s <span class="badge">Integratie</span></h2>
+                <ul class="list" id="api-list"></ul>
+                <p style="color:var(--muted);margin-top:0.85rem;font-size:0.9rem;">
+                    Live calls gaan via een backend-proxy (API-keys nooit in de browser).
+                    Dit dossier toont nu realistische voorbeelddata zodat je op iPhone al kunt werken.
+                    Zie <a href="API_INTEGRATION.md">API_INTEGRATION.md</a>.
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <div class="toast" id="toast" role="status"></div>
+    <footer>Risicodossier Agent · geen BRP · BAG / PDOK / BRO / CBS · iPhone-first</footer>
+
+    <script>
+    const TOPICS = [
+        'Bedrijfsactiviteiten', 'Gebouwen', 'Constructie', 'Compartimentering',
+        'Elektrische installatie', 'Verwarming', 'Branddetectie', 'Blusmiddelen',
+        'Huishouding', 'Roken / open vuur', "Accu's en laadplaatsen", 'Gevaarlijke stoffen',
+        'Machines / processen', 'Opslag', 'Buitenopslag', 'Inbraak / diefstal',
+        'Water', 'Storm', 'Bedrijfsschade', 'Brandweer / repressie'
+    ];
+
+    const APIS = [
+        { name: 'BAG (Kadaster)', use: 'Adres, pand, VBO, gebruiksdoel, oppervlakte, bouwjaar', url: 'https://api.bag.kadaster.nl/lvbag/individuelebevragingen/v2' },
+        { name: 'PDOK Locatieserver / WFS', use: 'Geocoding, geometrie, buren/nabije panden, waterlichamen', url: 'https://api.pdok.nl' },
+        { name: 'BRO', use: 'Bodem, grondwaterstand, fundering', url: 'https://publieke.broservices.nl' },
+        { name: 'CBS StatLine / wijken-buurten', use: 'Buurtcijfers, WOZ-aggregaat — géén personen', url: 'https://opendata.cbs.nl' },
+        { name: 'EP-Online', use: 'Energielabel', url: 'https://public.ep-online.nl' },
+        { name: 'OpenRouteService / OSM', use: 'Rijafstand brandweerkazerne', url: 'https://api.openrouteservice.org' },
+        { name: 'Overpass / Waternet', use: 'Brandkranen, open water, blusmiddelen', url: 'https://overpass-api.de' },
+        { name: 'BRP', use: 'Niet gekoppeld — persoonsgegevens; alleen met wettelijke grondslag', url: '—' }
+    ];
+
+    let dossier = null;
+
+    function $(id) { return document.getElementById(id); }
+    function toast(msg) {
+        const el = $('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => el.classList.remove('show'), 2800);
+    }
+    function normalizePostcode(pc) {
+        return (pc || '').toUpperCase().replace(/\s+/g, '').replace(/^(\d{4})([A-Z]{2})$/, '$1 $2');
+    }
+    function haversine(lat1, lon1, lat2, lon2) {
+        const R = 6371e3;
+        const toRad = d => d * Math.PI / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+    function hashSeed(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i) | 0;
+        return Math.abs(h);
+    }
+    function pick(seed, arr) { return arr[seed % arr.length]; }
+
+    /** Realistische mock op basis van adres — vervangbaar door live API-proxy. */
+    function buildDossier(input) {
+        const postcode = normalizePostcode(input.postcode);
+        const seed = hashSeed(postcode + String(input.huisnummer) + (input.toevoeging || ''));
+        const lat = 52.1 + (seed % 800) / 1000;
+        const lon = 4.3 + (seed % 900) / 1000;
+        const oppervlakte = 120 + (seed % 4200);
+        const bouwjaar = 1920 + (seed % 105);
+        const verdiepingen = 1 + (seed % 6);
+        const gebruiksdoelen = [
+            'woonfunctie', 'winkelfunctie', 'kantoorfunctie', 'industriefunctie',
+            'bijeenkomstfunctie', 'logiesfunctie', 'gezondheidszorgfunctie', 'onderwijsfunctie'
+        ];
+        const gebruiksdoel = pick(seed, gebruiksdoelen);
+        const stationTypes = ['beroeps', 'vrijwilligers'];
+        const stationType = pick(seed >> 2, stationTypes);
+        const stationDistKm = 0.8 + (seed % 55) / 10;
+        const durationMin = Math.round(stationDistKm * (stationType === 'beroeps' ? 2.2 : 3.1) + 2);
+
+        const neighborUses = ['woonfunctie', 'winkelfunctie', 'industriefunctie', 'kantoorfunctie', 'garagebox', 'pakhuis'];
+        const neighbors = Array.from({ length: 3 + (seed % 3) }, (_, i) => {
+            const nSeed = seed + (i + 1) * 97;
+            const dist = 4 + (nSeed % 48);
+            return {
+                label: `${postcode.split(' ')[0]} ${Number(input.huisnummer) + (i % 2 === 0 ? i + 1 : -(i + 1))}`,
+                gebruiksdoel: pick(nSeed, neighborUses),
+                afstandM: dist,
+                oppervlakteM2: 40 + (nSeed % 1800),
+                bouwjaar: 1930 + (nSeed % 90),
+                gedeeldeWand: dist < 8,
+                risicoNote: dist < 8 ? 'Gedeelde of zeer nabije scheidingsconstructie' : 'Nabij object'
+            };
+        }).sort((a, b) => a.afstandM - b.afstandM);
+
+        const waterSources = [
+            { type: 'Brandkraan', location: 'Voorzijde straat', distance: 18 + (seed % 40), capacity: '90–120 m³/u', accessibility: 'Goed' },
+            { type: 'Brandkraan', location: 'Zijstraat', distance: 55 + (seed % 80), capacity: '60–90 m³/u', accessibility: 'Matig' },
+            { type: pick(seed, ['Open water', 'Bluswaterriool', 'Open water']), location: pick(seed, ['Sloot achterterrein', 'Gracht 180 m', 'Kanaal 250 m']), distance: 120 + (seed % 200), capacity: pick(seed, ['Onbeperkt', '150 m³/u', 'Onbeperkt']), accessibility: pick(seed, ['Bereikbaar', 'Beperkt', 'Goed']) }
+        ];
+
+        const exposureScore = neighbors.some(n => n.gedeeldeWand && ['industriefunctie','pakhuis'].includes(n.gebruiksdoel)) ? 'Hoog'
+            : neighbors.some(n => n.afstandM < 12) ? 'Midden' : 'Laag';
+        const fireScore = durationMin <= 8 ? 'Laag' : durationMin <= 15 ? 'Midden' : 'Hoog';
+        const buildingScore = oppervlakte > 2500 || verdiepingen >= 5 ? 'Hoog' : oppervlakte > 800 ? 'Midden' : 'Laag';
+
+        return {
+            meta: {
+                createdAt: new Date().toISOString(),
+                source: 'risico-dossier-agent',
+                mode: 'demo-mock',
+                privacy: 'Geen BRP-persoonsgegevens opgeslagen'
+            },
+            subject: {
+                objectnaam: input.objectnaam || '',
+                postcode,
+                huisnummer: String(input.huisnummer),
+                toevoeging: input.toevoeging || '',
+                plaats: input.plaats || pick(seed, ['Amsterdam', 'Utrecht', 'Rotterdam', 'Eindhoven', 'Arnhem']),
+                lat, lon
+            },
+            bag: {
+                pandIdentificatie: `NL.IMBAG.Pand.${1000000000000000 + (seed % 899999999999999)}`,
+                adresseerbaarObjectIdentificatie: `NL.IMBAG.Verblijfsobject.${2000000000000000 + (seed % 799999999999999)}`,
+                openbareRuimte: pick(seed, ['Industrieweg', 'Stationsstraat', 'Havenkade', 'Dorpsstraat', 'Bedrijvenpark']),
+                huisnummer: String(input.huisnummer),
+                postcode,
+                plaats: input.plaats || pick(seed, ['Amsterdam', 'Utrecht', 'Rotterdam', 'Eindhoven', 'Arnhem']),
+                bouwjaar,
+                status: 'Pand in gebruik',
+                gebruiksdoel,
+                oppervlakteM2: oppervlakte,
+                verdiepingen,
+                monumentStatus: seed % 17 === 0 ? 'Gemeentelijk monument' : 'Geen',
+                energieLabel: pick(seed, ['A', 'B', 'C', 'D', 'E', 'G'])
+            },
+            vloer: {
+                bagOppervlakteM2: oppervlakte,
+                bvoGemetenM2: null,
+                verdiepingen,
+                bron: 'BAG VBO oppervlakte (demo)'
+            },
+            neighbors,
+            fireWater: {
+                station: {
+                    name: pick(seed, ['Kazerne Centrum', 'Kazerne Noord', 'Kazerne Haven', 'Post West']),
+                    type: stationType,
+                    address: pick(seed, ['Brandweerlaan 1', 'Hulpverleningsweg 8', 'Kazernestraat 12']),
+                    distanceKm: Number(stationDistKm.toFixed(1)),
+                    durationMin,
+                    equipment: stationType === 'beroeps'
+                        ? ['TS', 'HW', 'Autoladder', 'Speciale bluswagen']
+                        : ['TS', 'HW', 'Waterwagen']
+                },
+                waterSources,
+                riskClass: fireScore
+            },
+            omgeving: {
+                bodemtype: pick(seed, ['Zand', 'Klei', 'Veen', 'Zavel']),
+                grondwaterstandM: (0.4 + (seed % 25) / 10).toFixed(1),
+                funderingsrisico: pick(seed, ['Laag', 'Matig', 'Aandacht fundering']),
+                bestemming: pick(seed, ['Bedrijventerrein', 'Gemengd', 'Wonen', 'Centrum']),
+                cbsBuurt: {
+                    naam: pick(seed, ['Bedrijventerrein Oost', 'Binnenstad', 'Havenkwartier', 'Woonwijk Zuid']),
+                    inwoners: 800 + (seed % 9000),
+                    wozMediaan: 180000 + (seed % 450000),
+                    bevolkingsdichtheid: 500 + (seed % 8000)
+                },
+                overstromingsrisico: pick(seed, ['Buiten risicogebied', 'Aandacht bij extreme neerslag', 'Dijktraject nabij'])
+            },
+            occupancy: {
+                bagGebruiksdoel: gebruiksdoel,
+                personeel: null,
+                nacht: 'onbekend',
+                bhv: 'onbekend',
+                zelfredzaamheid: ['logiesfunctie','gezondheidszorgfunctie','onderwijsfunctie'].includes(gebruiksdoel) ? 'laag' : 'gemiddeld',
+                activiteiten: ''
+            },
+            scores: { fire: fireScore, exposure: exposureScore, building: buildingScore },
+            topics: TOPICS.map(name => ({ name, status: 'Nog te beoordelen' })),
+            apis: APIS
+        };
+    }
+
+    function setScoreEl(id, level, detail) {
+        const el = $(id);
+        el.className = 'score ' + (level === 'Hoog' ? 'danger' : level === 'Midden' ? 'warn' : 'ok');
+        el.querySelector('strong').textContent = level;
+        el.querySelector('small').textContent = detail || '';
+    }
+
+    function renderDossier(d) {
+        dossier = d;
+        $('results').hidden = false;
+
+        const overall = [d.scores.fire, d.scores.exposure, d.scores.building].includes('Hoog') ? 'Verhoogd'
+            : [d.scores.fire, d.scores.exposure, d.scores.building].includes('Midden') ? 'Matig' : 'Beheersbaar';
+        $('risk-badge').textContent = overall;
+        $('risk-badge').className = 'badge ' + (overall === 'Verhoogd' ? 'danger' : overall === 'Matig' ? 'warn' : '');
+        $('summary-text').textContent =
+            `${d.bag.openbareRuimte} ${d.bag.huisnummer}${d.subject.toevoeging ? '-' + d.subject.toevoeging : ''}, ${d.bag.postcode} ${d.bag.plaats}` +
+            ` · ${d.bag.gebruiksdoel} · BAG ${d.bag.oppervlakteM2} m² · opkomst ±${d.fireWater.station.durationMin} min (${d.fireWater.station.type})`;
+
+        setScoreEl('score-fire', d.scores.fire, `${d.fireWater.station.durationMin} min · ${d.fireWater.station.type}`);
+        setScoreEl('score-exposure', d.scores.exposure, `${d.neighbors.length} nabije panden`);
+        setScoreEl('score-building', d.scores.building, `${d.bag.oppervlakteM2} m² · ${d.bag.verdiepingen} bouwlagen`);
+
+        $('summary-chips').innerHTML = [
+            d.bag.energieLabel && `Label ${d.bag.energieLabel}`,
+            d.bag.monumentStatus !== 'Geen' && d.bag.monumentStatus,
+            d.omgeving.overstromingsrisico,
+            d.neighbors.some(n => n.gedeeldeWand) && 'Gedeelde wand',
+            d.meta.privacy
+        ].filter(Boolean).map(t => `<span class="chip">${t}</span>`).join('');
+
+        $('bag-kv').innerHTML = [
+            ['Adres', `${d.bag.openbareRuimte} ${d.bag.huisnummer}${d.subject.toevoeging ? ' ' + d.subject.toevoeging : ''}`],
+            ['Postcode / plaats', `${d.bag.postcode} ${d.bag.plaats}`],
+            ['Gebruiksdoel', d.bag.gebruiksdoel],
+            ['Bouwjaar', d.bag.bouwjaar],
+            ['Status', d.bag.status],
+            ['Oppervlakte (BAG)', `${d.bag.oppervlakteM2} m²`],
+            ['Verdiepingen', d.bag.verdiepingen],
+            ['Monument', d.bag.monumentStatus],
+            ['Energielabel', d.bag.energieLabel],
+            ['Pand-ID', d.bag.pandIdentificatie],
+            ['VBO-ID', d.bag.adresseerbaarObjectIdentificatie],
+            ['Coördinaten', `${d.subject.lat.toFixed(5)}, ${d.subject.lon.toFixed(5)}`]
+        ].map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+
+        renderVloer(d);
+        $('buren-list').innerHTML = d.neighbors.map(n => `
+            <li>
+                <strong>${n.label}</strong> — ${n.gebruiksdoel}
+                <div class="meta">${n.afstandM} m · ${n.oppervlakteM2} m² · bouwjaar ${n.bouwjaar}
+                ${n.gedeeldeWand ? ' · <span style="color:#ffb4b4">gedeelde/nabije wand</span>' : ''}
+                · ${n.risicoNote}</div>
+            </li>`).join('');
+
+        $('water-kv').innerHTML = [
+            ['Kazerne', d.fireWater.station.name],
+            ['Type post', d.fireWater.station.type],
+            ['Adres kazerne', d.fireWater.station.address],
+            ['Rijafstand', `${d.fireWater.station.distanceKm} km`],
+            ['Opkomsttijd (schatting)', `${d.fireWater.station.durationMin} min`],
+            ['Materieel', d.fireWater.station.equipment.join(', ')],
+            ['Risicoklasse opkomst', d.fireWater.riskClass]
+        ].map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+
+        $('water-list').innerHTML = d.fireWater.waterSources.map(w => `
+            <li><strong>${w.type}</strong> — ${w.location}
+            <div class="meta">${w.distance} m · capaciteit ${w.capacity} · toegankelijkheid ${w.accessibility}</div></li>`).join('');
+
+        $('omgeving-kv').innerHTML = [
+            ['Bodemtype (BRO)', d.omgeving.bodemtype],
+            ['Grondwaterstand', `${d.omgeving.grondwaterstandM} m-mv`],
+            ['Funderingsrisico', d.omgeving.funderingsrisico],
+            ['Bestemming', d.omgeving.bestemming],
+            ['Buurt (CBS)', d.omgeving.cbsBuurt.naam],
+            ['Inwoners buurt', d.omgeving.cbsBuurt.inwoners],
+            ['WOZ mediaan buurt', `€ ${d.omgeving.cbsBuurt.wozMediaan.toLocaleString('nl-NL')}`],
+            ['Bevolkingsdichtheid', `${d.omgeving.cbsBuurt.bevolkingsdichtheid} / km²`],
+            ['Water / overstroming', d.omgeving.overstromingsrisico]
+        ].map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+
+        $('gebruik-kv').innerHTML = [
+            ['BAG gebruiksdoel', d.occupancy.bagGebruiksdoel],
+            ['Let op', 'Geen BRP — bezetting zelf vastleggen']
+        ].map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+
+        $('personeel').value = d.occupancy.personeel ?? '';
+        $('nacht').value = d.occupancy.nacht === 'onbekend' ? 'geen' : d.occupancy.nacht;
+        $('bhv').value = d.occupancy.bhv;
+        $('zelfredzaamheid').value = d.occupancy.zelfredzaamheid;
+        $('activiteiten').value = d.occupancy.activiteiten || '';
+
+        $('topics-list').innerHTML = d.topics.map(t => `
+            <li><strong>${t.name}</strong><div class="meta">${t.status}</div></li>`).join('');
+
+        $('api-list').innerHTML = d.apis.map(a => `
+            <li><strong>${a.name}</strong><div class="meta">${a.use}${a.url !== '—' ? ` · ${a.url}` : ''}</div></li>`).join('');
+
+        localStorage.setItem('risicoDossier', JSON.stringify(d));
+        localStorage.setItem('agentInput', JSON.stringify({
+            postcode: d.subject.postcode,
+            huisnummer: d.subject.huisnummer,
+            toevoeging: d.subject.toevoeging,
+            plaats: d.subject.plaats,
+            straatnaam: d.bag.openbareRuimte,
+            oppervlakte: d.vloer.bvoGemetenM2 || d.vloer.bagOppervlakteM2,
+            gebouwType: d.bag.gebruiksdoel,
+            objectnaam: d.subject.objectnaam
+        }));
+    }
+
+    function renderVloer(d) {
+        const bvo = d.vloer.bvoGemetenM2;
+        $('vloer-kv').innerHTML = [
+            ['BAG oppervlakte', `${d.vloer.bagOppervlakteM2} m²`],
+            ['Gemeten BVO', bvo != null ? `${bvo} m²` : 'Nog niet ingevuld'],
+            ['Verschil', bvo != null ? `${(bvo - d.vloer.bagOppervlakteM2).toFixed(0)} m²` : '—'],
+            ['Verdiepingen', d.vloer.verdiepingen],
+            ['Bron', d.vloer.bron]
+        ].map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+        if (bvo != null) $('bvo-override').value = bvo;
+        $('verdiepingen-override').value = d.vloer.verdiepingen;
+    }
+
+    function runAnalyse() {
+        const postcode = $('postcode').value.trim();
+        const huisnummer = $('huisnummer').value.trim();
+        if (!/^\d{4}\s?[A-Za-z]{2}$/.test(postcode)) {
+            toast('Vul een geldige Nederlandse postcode in (1234 AB).');
+            return;
+        }
+        if (!huisnummer) {
+            toast('Vul een huisnummer in.');
+            return;
+        }
+        $('input-card').classList.add('loading');
+        setTimeout(() => {
+            const d = buildDossier({
+                postcode,
+                huisnummer,
+                toevoeging: $('toevoeging').value.trim(),
+                plaats: $('plaats').value.trim(),
+                objectnaam: $('objectnaam').value.trim()
+            });
+            renderDossier(d);
+            $('input-card').classList.remove('loading');
+            toast('Risicodossier opgebouwd (demo-data + jouw invoer).');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 450);
+    }
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    $('btn-analyse').addEventListener('click', runAnalyse);
+    $('btn-voorbeeld').addEventListener('click', () => {
+        $('postcode').value = '3511 AA';
+        $('huisnummer').value = '1';
+        $('toevoeging').value = '';
+        $('plaats').value = 'Utrecht';
+        $('objectnaam').value = 'Voorbeeld Magazijn BV';
+        runAnalyse();
+    });
+
+    $('btn-save-vloer').addEventListener('click', () => {
+        if (!dossier) return;
+        const bvo = Number($('bvo-override').value);
+        const verd = Number($('verdiepingen-override').value);
+        if (bvo) {
+            dossier.vloer.bvoGemetenM2 = bvo;
+            dossier.vloer.bron = 'Gemeten BVO + BAG';
+        }
+        if (verd) dossier.vloer.verdiepingen = verd;
+        renderVloer(dossier);
+        localStorage.setItem('risicoDossier', JSON.stringify(dossier));
+        toast('Vloeroppervlakte opgeslagen in dossier.');
+    });
+
+    $('btn-save-bezetting').addEventListener('click', () => {
+        if (!dossier) return;
+        dossier.occupancy.personeel = $('personeel').value ? Number($('personeel').value) : null;
+        dossier.occupancy.nacht = $('nacht').value;
+        dossier.occupancy.bhv = $('bhv').value;
+        dossier.occupancy.zelfredzaamheid = $('zelfredzaamheid').value;
+        dossier.occupancy.activiteiten = $('activiteiten').value.trim();
+        localStorage.setItem('risicoDossier', JSON.stringify(dossier));
+        toast('Bezetting opgeslagen (geen BRP).');
+    });
+
+    $('btn-export').addEventListener('click', () => {
+        if (!dossier) return;
+        const blob = new Blob([JSON.stringify(dossier, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `risicodossier-${dossier.subject.postcode.replace(/\s/g,'')}-${dossier.subject.huisnummer}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('JSON-export gestart.');
+    });
+
+    $('btn-to-brandweer').addEventListener('click', () => {
+        if (!dossier) return;
+        const payload = {
+            postcode: dossier.subject.postcode,
+            huisnummer: dossier.subject.huisnummer,
+            straatnaam: dossier.bag.openbareRuimte,
+            plaats: dossier.subject.plaats
+        };
+        localStorage.setItem('brandweerAgentInput', JSON.stringify(payload));
+        localStorage.setItem('locationDataForBrandweer', JSON.stringify(payload));
+        window.location.href = `brandweer-watervoorziening.html?postcode=${encodeURIComponent(payload.postcode)}&huisnummer=${encodeURIComponent(payload.huisnummer)}`;
+    });
+
+    $('btn-to-meet').addEventListener('click', () => {
+        if (!dossier) return;
+        localStorage.setItem('meet-agent-input', JSON.stringify({
+            oppervlakte: dossier.vloer.bvoGemetenM2 || dossier.vloer.bagOppervlakteM2,
+            verdiepingen: dossier.vloer.verdiepingen
+        }));
+        window.location.href = 'meet-agent.html';
+    });
+
+    // Prefill from URL / localStorage
+    (function init() {
+        const params = new URLSearchParams(location.search);
+        const saved = (() => { try { return JSON.parse(localStorage.getItem('agentInput') || 'null'); } catch { return null; } })();
+        const pc = params.get('postcode') || saved?.postcode || '';
+        const hn = params.get('huisnummer') || saved?.huisnummer || '';
+        if (pc) $('postcode').value = pc;
+        if (hn) $('huisnummer').value = hn;
+        if (saved?.plaats) $('plaats').value = saved.plaats;
+        if (saved?.objectnaam) $('objectnaam').value = saved.objectnaam;
+        if (params.get('auto') === '1' && pc && hn) runAnalyse();
+    })();
+    </script>
+</body>
+</html>

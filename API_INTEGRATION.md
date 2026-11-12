@@ -466,10 +466,57 @@ async function getNearestFireStation(lat, lon) {
 }
 ```
 
+## 🛡️ Risicodossier — volledige bronnen voor de risicodeskundige
+
+De `risico-dossier-agent.html` bundelt alle context die een risicodeskundige nodig heeft
+rond één adres. Live calls horen via een **backend-proxy** (API-keys nooit in de browser).
+
+| Domein | Bron | Wat je krijgt | Opmerking |
+|--------|------|---------------|-----------|
+| Adres / pand / VBO | **BAG** | gebruiksdoel, bouwjaar, oppervlakte, status, IDs | Kern van het dossier |
+| Buren | **BAG + PDOK** geometrie | nabije panden, afstand, gebruiksdoel | Geen bewonersnamen |
+| Vloeroppervlakte | BAG + meet-agent | VBO m² vs gemeten BVO | Beide bewaren |
+| Brandweer | OSM / ORS / brandweerfeeds | kazerne, type, rijafstand, materieel | Beroeps vs vrijwilligers |
+| Bluswater | PDOK / Overpass / waterbeheerder | brandkranen, open water | Capaciteit + toegankelijkheid |
+| Bodem / grondwater | **BRO** | bodemtype, grondwaterstand, fundering | Relevant voor water/schade |
+| Buurtcijfers | **CBS** | WOZ-mediaan, dichtheid | Aggregaat, geen personen |
+| Energielabel | EP-Online | label | Optioneel |
+| Bezetting | **Handmatig** | personeel, nacht, BHV, zelfredzaamheid | Geen BRP |
+| Inspectie | RiskWalk / formulier | thema’s, tekortkomingen, foto’s | Veldwerk |
+
+### BRP (Basisregistratie Personen) — bewust niet gekoppeld
+
+```text
+❌ Geen BRP-koppeling in dit systeem.
+Reden: persoonsgegevens; alleen toegestaan met wettelijke grondslag,
+doelbinding en autorisatie (geen standaard open data voor risicodeskundigen).
+
+✅ Alternatieven voor “wie zit er?”:
+- BAG gebruiksdoel
+- Zelf opgegeven bezetting tijdens inspectie
+- CBS buurtaggregaten
+- Buren = aangrenzende PANDEN, nooit personen
+```
+
+### Buren-query (concept)
+
+```javascript
+// Pseudocode: nabije panden via PDOK/BAG geometrie (geen BRP)
+async function getNeighborBuildings(lon, lat, radiusM = 75) {
+  // 1. Haal pand-polygon van doeladres (BAG)
+  // 2. Spatial query nabije panden (PDOK WFS / BAG)
+  // 3. Map alleen: pandId, gebruiksdoel, oppervlakte, afstand, gedeeldeWand?
+  // 4. Sla nooit namen, BSN of BRP-gegevens op
+  return neighbors;
+}
+```
+
 ## 📞 Support & Resources
 
 - **BAG API Docs**: https://www.kadaster.nl/zakelijk/producten/adressen-en-gebouwen/bag-api
 - **PDOK Services**: https://www.pdok.nl/
+- **BRO**: https://www.broloket.nl/
+- **CBS Open Data**: https://opendata.cbs.nl/
 - **OpenStreetMap**: https://www.openstreetmap.org/
 - **Google Maps Platform**: https://developers.google.com/maps
 - **OpenRouteService**: https://openrouteservice.org/
